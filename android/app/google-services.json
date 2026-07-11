@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "223137888345",
+    "project_id": "ffdiamondsrewards",
+    "storage_bucket": "ffdiamondsrewards.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223137888345:android:ed7fb9e20700c6501a9948",
+        "android_client_info": {
+          "package_name": "com.perkmedia.FFdiamonds"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBo9iR8N41Rc64yhr6Rz69qfqNlLrenQw0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
