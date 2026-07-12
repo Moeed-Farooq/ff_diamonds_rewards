@@ -55,6 +55,7 @@ export const COLORS = {
   lightGrey: '#dadada',
   
   green: '#10B981',          
+  darkGreen: 'rgb(39, 136, 20)',
   lightGreen: '#E6F4EA',
   
   yellow: '#FFCC00',        

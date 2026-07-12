@@ -1,8 +1,8 @@
 import { SVG } from '../assets';
-import { IMAGES } from '../assets/images';
 import { SCREEN } from '../enums';
-import { COLORS } from '../enums/StyleGuide';
 import { en } from '../languages';
+
+
 
 export const bottomIcons = {
   [SCREEN.HOME_SCREEN]: {
@@ -23,19 +23,25 @@ export const bottomIcons = {
 };
 
 export const stats = [
-  { icon: SVG.coins, color: '#DAE36A', label: en.profile.totalEarned },
-  { icon: SVG.fire, color: '#FEAA2F', label: en.profile.dailyStreak },
-  { icon: SVG.document, color: '#3DA2FF', label: en.profile.transactions },
+  {
+    icon: SVG.coins,
+    color: '#DAE36A',
+    label: en.profile.totalEarned,
+  },
+  { icon: SVG.fire, color: '#FEAA2F', label: en.profile.dailyStreak},
+  {
+    icon: SVG.document,
+    color: '#3DA2FF',
+    label: en.profile.transactions,
+  },
 ];
-
-
 
 export const dashboardCards = [
   {
     id: 'daily',
     title: en.rewardData.dashboardDailyTitle,
     subtitle: en.rewardData.dashboardDailySubtitle,
-    icon: 'calendar-month-outline',
+    icon: SVG.calender,
     status: en.rewardData.statusAvailable,
     colors: ['#FF6A3C', '#D8653A'],
     route: SCREEN.DAILY_LOGIN_SCREEN,
@@ -44,7 +50,7 @@ export const dashboardCards = [
     id: 'scratch',
     title: en.rewardData.dashboardScratchTitle,
     subtitle: en.rewardData.dashboardScratchSubtitle,
-    icon: 'gesture-tap-button',
+    icon: SVG.scratch,
     status: en.rewardData.status6Left,
     colors: ['#B75DE5', '#931DBD'],
     route: SCREEN.SCRATCH_WIN_SCREEN,
@@ -53,7 +59,7 @@ export const dashboardCards = [
     id: 'spin',
     title: en.rewardData.dashboardSpinTitle,
     subtitle: en.rewardData.dashboardSpinSubtitle,
-    icon: 'ferris-wheel',
+    icon: SVG.wheelWhite,
     status: en.rewardData.status5Left,
     colors: ['#3AA9F8', '#2D7DD7'],
     route: SCREEN.SPIN_WIN_SCREEN,
@@ -62,7 +68,7 @@ export const dashboardCards = [
     id: 'watch',
     title: en.rewardData.dashboardWatchTitle,
     subtitle: en.rewardData.dashboardWatchSubtitle,
-    icon: 'play',
+    icon: SVG.play,
     status: en.rewardData.statusAvailable,
     colors: ['#57C25D', '#3A9B4A'],
     route: SCREEN.WATCH_EARN_SCREEN,
@@ -87,7 +93,9 @@ export const todayProgressRows = [
   },
 ];
 
-export const weeklyRewards = [5, 12, 28, 45, 65, 90, 120];
+export const weeklyRewards = [5, 12, 28, 45, 72, 85, 100];
+
+export const scratchRewards = [2, 4, 6, 8, 10, 12];
 
 export const wheelRewards = [1, 5, 10, 20, 30];
 

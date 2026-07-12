@@ -1,10 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import {
-  Modal,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
@@ -15,10 +10,13 @@ import { en } from '../../languages';
 import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
 import { AppHeader } from '../../components';
+import { scratchRewards } from '../../dummies';
+import { useCoinsData } from '../../hooks';
+import { canPlayScratch, getScratchRemainingTime } from '../../helpers';
+import { claimScratchReward } from '../../services/firebaseServices';
 
 const seedCards = () => {
-  const rewards = [2, 4, 6, 8, 10, 12];
-  return rewards
+  return scratchRewards
     .sort(() => Math.random() - 0.5)
     .map((reward, index) => ({
       id: `${index}`,
@@ -28,28 +26,56 @@ const seedCards = () => {
 };
 
 const ScratchWinScreen = ({ navigation }) => {
-  const [cards, setCards] = useState(seedCards);
+  const [cards] = useState(seedCards);
+  const [loading, setLoading] = useState(false);
+  const [remainingTime, setRemainingTime] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedReward, setSelectedReward] = useState(null);
+  const { coins, scratchWin } = useCoinsData();
+  const canPlay = canPlayScratch(scratchWin.lastCompletedAt);
 
-  const remainingCards = useMemo(
-    () => cards.filter(item => !item.isRevealed).length,
-    [cards],
-  );
-
-  const revealCard = id => {
-    const target = cards.find(item => item.id === id);
-    if (!target || target.isRevealed) {
+  useEffect(() => {
+    if (canPlay) {
+      setRemainingTime('');
       return;
     }
 
-    setCards(current =>
-      current.map(item =>
-        item.id === id ? { ...item, isRevealed: true } : item,
-      ),
-    );
-    setSelectedReward(target.reward);
-    setShowModal(true);
+    const update = () => {
+      setRemainingTime(getScratchRemainingTime(scratchWin.lastCompletedAt));
+    };
+
+    update();
+
+    const interval = setInterval(update, 1000);
+
+    return () => clearInterval(interval);
+  }, [scratchWin.lastCompletedAt, canPlay]);
+
+  const remainingCards = useMemo(() => {
+    if (!canPlay) {
+      return 0;
+    }
+
+    return 6 - (scratchWin.claimedCards?.length || 0);
+  }, [scratchWin, canPlay]);
+
+  const revealCard = async card => {
+    if (!canPlay || loading) {
+      return;
+    }
+    if (scratchWin.claimedCards?.includes(card.id)) {
+      return;
+    }
+    try {
+      setLoading(true);
+      await claimScratchReward(card.id, card.reward);
+      setSelectedReward(card.reward);
+      setShowModal(true);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,10 +85,12 @@ const ScratchWinScreen = ({ navigation }) => {
         showBackButton
         onLeftPress={() => navigation.goBack()}
         showCoinPill
-        coins={0}
         variant="topbar"
       />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.summaryCard}>
           <MaterialCommunityIcons
             name="gesture-tap-button"
@@ -71,7 +99,12 @@ const ScratchWinScreen = ({ navigation }) => {
           />
           <Label style={styles.summaryTitle}>{en.scratchWin.screenTitle}</Label>
           <Label style={styles.summaryText}>
-            {en.scratchWin.remainingCards.replace('{{count}}', `${remainingCards}`)}
+            {canPlay
+              ? en.scratchWin.remainingCards.replace(
+                  '{{count}}',
+                  `${remainingCards}`,
+                )
+              : remainingTime}
           </Label>
         </View>
 
@@ -80,22 +113,32 @@ const ScratchWinScreen = ({ navigation }) => {
             <ScalePressable
               key={card.id}
               style={styles.scratchTileWrap}
-              onPress={() => revealCard(card.id)}
-              disabled={card.isRevealed}
+              onPress={() => revealCard(card)}
+              disabled={
+                !canPlay ||
+                loading ||
+                scratchWin.claimedCards?.includes(card.id)
+              }
             >
               <LinearGradient
                 colors={
-                  card.isRevealed
-                    ? ['#2B4588', '#27407B']
-                    : ['#B96CE3', '#9B2BC8']
+                  !canPlay
+                    ? ['#5f5e5e', '#464040'] // Timer active - Grey
+                    : scratchWin.claimedCards?.includes(card.id)
+                    ? ['#2B4588', '#27407B'] // Claimed
+                    : ['#B96CE3', '#9B2BC8'] // Available
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.scratchTile}
               >
-                {card.isRevealed ? (
+                {scratchWin.claimedCards?.includes(card.id) ? (
                   <>
-                   <SvgIcon icon={SVG.coins} height={hp(3.5)} width={hp(3.5)}/>
+                    <SvgIcon
+                      icon={SVG.coins}
+                      height={hp(3.5)}
+                      width={hp(3.5)}
+                    />
                     <Label style={styles.revealedTitle}>
                       {card.reward} {en.scratchWin.coinsSuffix}
                     </Label>
@@ -107,7 +150,9 @@ const ScratchWinScreen = ({ navigation }) => {
                       size={hp(4.9)}
                       color={COLORS.white}
                     />
-                    <Label style={styles.tapLabel}>{en.scratchWin.tapToReveal}</Label>
+                    <Label style={styles.tapLabel}>
+                     {canPlay ? en.scratchWin.tapToReveal : en.scratchWin.claimed}
+                    </Label>
                   </>
                 )}
               </LinearGradient>
@@ -121,10 +166,18 @@ const ScratchWinScreen = ({ navigation }) => {
           <View style={styles.modalCard}>
             <Label style={styles.modalTitle}>{en.scratchWin.modalTitle}</Label>
             <Label style={styles.modalText}>
-              {en.scratchWin.modalMessage.replace('{{reward}}', `${selectedReward}`)}
+              {en.scratchWin.modalMessage.replace(
+                '{{reward}}',
+                `${selectedReward}`,
+              )}
             </Label>
-            <ScalePressable style={styles.modalButton} onPress={() => setShowModal(false)}>
-              <Label style={styles.modalButtonText}>{en.scratchWin.modalButton}</Label>
+            <ScalePressable
+              style={styles.modalButton}
+              onPress={() => setShowModal(false)}
+            >
+              <Label style={styles.modalButtonText}>
+                {en.scratchWin.modalButton}
+              </Label>
             </ScalePressable>
           </View>
         </View>
@@ -157,6 +210,9 @@ const styles = StyleSheet.create({
     color: palette.purple,
     fontSize: hp(2.5),
     fontFamily: FONT.bold,
+    backgroundColor:COLORS.yellow,
+    paddingHorizontal:hp(1),
+    borderRadius:hp(1),
   },
   grid: {
     marginTop: hp(2.4),

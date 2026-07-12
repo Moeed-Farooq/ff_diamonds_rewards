@@ -17,6 +17,10 @@ const RootNavigator = () => {
 
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name={SCREEN.SPLASH_SCREEN} component={ui.SplashScreen} />
+        <Stack.Screen
+          name={SCREEN.WELCOME_SCREEN}
+          component={ui.WelcomeScreen}
+        />
         <Stack.Screen name={TAB.BOTTOM} component={BottomNavigator} />
         <Stack.Screen
           name={SCREEN.DAILY_LOGIN_SCREEN}

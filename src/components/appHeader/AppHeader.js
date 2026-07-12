@@ -15,7 +15,6 @@ const AppHeader = ({
   onRightPress,
   showBackButton = false,
   showCoinPill = false,
-  coins = 0,
   variant = 'screen',
   containerStyle,
   titleStyle,
@@ -61,7 +60,7 @@ const AppHeader = ({
 
   const renderRight = () => {
     if (showCoinPill) {
-      return <CoinPill coins={coins} />;
+      return <CoinPill />;
     }
 
     if (rightIcon) {

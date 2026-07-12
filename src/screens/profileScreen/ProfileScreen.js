@@ -1,10 +1,5 @@
 import React, { useRef, useState } from 'react';
-import {
-  Animated,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen } from '../../components/ui';
@@ -17,10 +12,29 @@ import { SCREEN } from '../../enums';
 import { AppHeader } from '../../components';
 import ProfileStatItem from '../../components/ProfileStatItem';
 import ProfileSettingsItem from '../../components/ProfileSettingsItem';
+import { useUserProfile, useCoinsData } from '../../hooks';
 
 const ProfileScreen = ({ navigation }) => {
   const [isContactVisible, setIsContactVisible] = useState(false);
   const popupTranslateY = useRef(new Animated.Value(100)).current;
+  const { username, gameId } = useUserProfile();
+  const { coins ,dailyStreak } = useCoinsData();
+  console.log(dailyStreak);
+
+  const profileStats = [
+    {
+      ...stats[0],
+      value: coins,
+    },
+    {
+      ...stats[1],
+      value:dailyStreak.count,
+    },
+    {
+      ...stats[2],
+      value: 0,
+    },
+  ];
 
   const showContactPopup = () => {
     if (isContactVisible) {
@@ -64,21 +78,32 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <AppScreen>
-      <AppHeader title={en.profile.headerTitle} showCoinPill coins={0} />
+      <AppHeader title={en.profile.headerTitle} showCoinPill />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.profileCard}>
           <View style={styles.avatarWrap}>
-            <MaterialCommunityIcons name="account-outline" size={hp(5.4)} color={COLORS.white}/>
+            <MaterialCommunityIcons
+              name="account-outline"
+              size={hp(5.4)}
+              color={COLORS.white}
+            />
           </View>
-          <Label style={styles.userName}>{en.profile.username}</Label>
+          <Label style={styles.userName}>{username || 'Player'}</Label>
           <View style={styles.userIdChip}>
-            <Label style={styles.userIdText}>{en.profile.userId}</Label>
+            <Label style={styles.userIdText}>ID: {gameId || 'N/A'}</Label>
           </View>
 
           <View style={styles.statsRow}>
-            {stats.map(item => (
-              <ProfileStatItem key={item.label} item={item} value={0}/>
+            {profileStats.map(item => (
+              <ProfileStatItem
+                key={item.label}
+                item={item}
+                value={item.value}
+              />
             ))}
           </View>
         </View>
@@ -107,7 +132,9 @@ const ProfileScreen = ({ navigation }) => {
             { transform: [{ translateY: popupTranslateY }] },
           ]}
         >
-          <Label style={styles.contactPopupText}>{en.profile.contactPopupMessage}</Label>
+          <Label style={styles.contactPopupText}>
+            {en.profile.contactPopupMessage}
+          </Label>
         </Animated.View>
       ) : null}
     </AppScreen>
@@ -172,7 +199,7 @@ const styles = StyleSheet.create({
   footerCard: {
     marginTop: hp(3),
     marginBottom: hp(1),
-    marginHorizontal:hp(3),
+    marginHorizontal: hp(3),
     borderRadius: hp(2),
     backgroundColor: palette.pageBottom,
     paddingVertical: hp(1.5),
@@ -185,7 +212,7 @@ const styles = StyleSheet.create({
   },
   footerSub: {
     marginTop: hp(0.2),
-    color: COLORS.white+ HEX_OPACITY[62],
+    color: COLORS.white + HEX_OPACITY[62],
     fontSize: hp(1.5),
     fontFamily: FONT.regular,
   },

@@ -10,7 +10,7 @@
     "profile": "Profile"
   },
   "home": {
-    "greeting": "Hello, marvox! 👋",
+    "greeting": "Hello, {{username}} 👋",
     "earnDiamonds": "Earn Diamonds",
     "todayProgress": "Today's Progress",
     "readyToEarn":" Ready to earn some diamonds?"
@@ -33,6 +33,7 @@
     "tapToReveal": "Tap to Reveal!",
     "coinsSuffix": "Coins",
     "modalTitle": "Card Revealed",
+    "claimed":" Claimed",
     "modalMessage": "You won {{reward}} coins.",
     "modalButton": "Continue"
   },

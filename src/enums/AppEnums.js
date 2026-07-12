@@ -9,6 +9,7 @@ export const SCREEN = {
   SCRATCH_WIN_SCREEN: 'ScratchWinScreen',
   SPIN_WIN_SCREEN: 'SpinWinScreen',
   WATCH_EARN_SCREEN: 'WatchEarnScreen',
+  WELCOME_SCREEN: 'WelcomeScreen',
 };
 export const TAB = {
   BOTTOM: 'BottomNavigator',

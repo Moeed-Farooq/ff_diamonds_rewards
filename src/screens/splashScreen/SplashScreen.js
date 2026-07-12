@@ -1,27 +1,51 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
-import { hp, wp } from '../../enums/StyleGuide';
-import { TAB } from '../../enums';
+import { COLORS, FONT, HEX_OPACITY, hp, wp } from '../../enums/StyleGuide';
+import { SCREEN, TAB } from '../../enums';
 import Label from '../../common/Label';
 import { palette } from '../../constants/theme';
 import { en } from '../../languages';
+import Image from '../../common/Image';
+import { IMAGES } from '../../assets/images';
+import { hasCompletedOnboarding } from '../../services';
 
 const SplashScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: TAB.BOTTOM }],
-      });
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [navigation]);
-  
+    let mounted = true;
+    const initializeApp = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1800));
+        const result = await hasCompletedOnboarding();
+        if (!mounted) return;
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: result.isCompleted ? TAB.BOTTOM : SCREEN.WELCOME_SCREEN,
+            },
+          ],
+        });
+      } catch (e) {
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: SCREEN.WELCOME_SCREEN,
+            },
+          ],
+        });
+      }
+    };
+    initializeApp();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <LinearGradient
       colors={[palette.pageTop, palette.pageBottom]}
@@ -30,7 +54,7 @@ const SplashScreen = () => {
       style={styles.container}
     >
       <View style={styles.logoWrap}>
-        <MaterialCommunityIcons name="diamond-stone" size={hp(6.2)} color="#F3FAFF" />
+        <Image src={IMAGES.LOGO} style={styles.logo} />
       </View>
       <Label style={styles.title}>{en.app.ffDiamonds}</Label>
       <Label style={styles.subtitle}>{en.app.earnDiamondsDaily}</Label>
@@ -52,25 +76,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(6),
   },
   logoWrap: {
-    width: wp(24),
-    height: wp(24),
-    borderRadius: wp(12),
-    backgroundColor: '#FF6D3D',
+    width: hp(15),
+    height: hp(15),
+    borderRadius: hp(4),
+    backgroundColor: palette.pageBottom,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: hp(1.5),
+    marginBottom: hp(4.5),
   },
   title: {
-    fontSize: hp(4.8),
-    fontWeight: '900',
-    color: '#F5FAFF',
+    fontSize: hp(4.4),
+    fontFamily: FONT.bold,
+    color: COLORS.white,
     marginBottom: hp(0.1),
     textAlign: 'center',
   },
+  logo: {
+    width: hp(12),
+    height: hp(12),
+  },
   subtitle: {
-    fontSize: hp(3.1),
-    fontWeight: '600',
-    color: '#ABB8D5',
+    fontSize: hp(2.1),
+    fontFamily: FONT.semiBold,
+    color: COLORS.white + HEX_OPACITY[66],
     marginBottom: hp(5),
     textAlign: 'center',
   },
@@ -81,7 +109,8 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: hp(2.8),
-    color: '#E8F0FF',
+    fontFamily: FONT.semiBold,
+    color: COLORS.accent,
     marginTop: hp(1),
     textAlign: 'center',
   },

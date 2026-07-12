@@ -1,5 +1,12 @@
-// import useHomeHeroAnimation from './useHomeHeroAnimation';
+import useUserSession, {
+  useUserProfile,
+  useCurrentUser,
+} from './useUserSession';
+import useCoinsData from './useCoinsData';
 
 export {
-    //  useHomeHeroAnimation,
-     };
+  useUserSession,
+  useUserProfile,
+  useCurrentUser,
+  useCoinsData,
+};

@@ -13,7 +13,7 @@ import RedemptionItemCard from '../../components/RedemptionItemCard';
 const WithdrawalScreen = () => {
   return (
     <AppScreen>
-      <AppHeader title={en.withdrawal.headerTitle} showCoinPill coins={0} />
+      <AppHeader title={en.withdrawal.headerTitle} showCoinPill/>
 
       <ScrollView
         contentContainerStyle={styles.content}
