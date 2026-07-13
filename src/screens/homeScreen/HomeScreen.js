@@ -5,14 +5,15 @@ import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
 import { dashboardCards, todayProgressRows } from '../../dummies';
 import { palette, radius, shadows, spacing } from '../../constants/theme';
-import { COLORS, FONT, hp, wp } from '../../enums/StyleGuide';
+import { COLORS, FONT, HEX_OPACITY, hp, wp } from '../../enums/StyleGuide';
 import { en } from '../../languages';
 import { AppHeader } from '../../components';
 import SvgIcon from '../../common/SvgIcon';
-import { useUserProfile } from '../../hooks';
+import { useUserProfile, useDashboardStatus } from '../../hooks';
 
 const HomeScreen = ({ navigation }) => {
   const { username } = useUserProfile();
+  const dashboardStatus = useDashboardStatus();
 
   return (
     <AppScreen>
@@ -29,45 +30,60 @@ const HomeScreen = ({ navigation }) => {
 
         <Label style={styles.sectionTitle}>{en.home.earnDiamonds}</Label>
         <View style={styles.grid}>
-          {dashboardCards.map(item => (
-            <ScalePressable
-              key={item.id}
-              style={styles.tileWrap}
-              onPress={() => navigation.navigate(item.route)}
-            >
-              <LinearGradient
-                colors={item.colors}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.tile}
+          {dashboardCards.map(item => {
+            const status = dashboardStatus[item.id] ?? item.status;
+
+            return (
+              <ScalePressable
+                key={item.id}
+                style={styles.tileWrap}
+                onPress={() => navigation.navigate(item.route)}
               >
-                <View style={styles.tileTopRow}>
-                  <View style={styles.iconBadge}>
-                    <SvgIcon
-                      icon={item.icon}
-                      height={hp(2.5)}
-                      width={hp(2.5)}
-                    />
+                <LinearGradient
+                  colors={item.colors}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.tile}
+                >
+                  <View style={styles.tileTopRow}>
+                    <View style={styles.iconBadge}>
+                      <SvgIcon
+                        icon={item.icon}
+                        height={hp(2.5)}
+                        width={hp(2.5)}
+                      />
+                    </View>
+                    {!!status && (
+                      <View style={styles.statusBadge}>
+                        <Label style={styles.statusText}>{status}</Label>
+                      </View>
+                    )}
                   </View>
-                  <View style={styles.statusBadge}>
-                    <Label style={styles.statusText}>{item.status}</Label>
-                  </View>
-                </View>
-                <Label style={styles.tileTitle}>{item.title}</Label>
-                <Label style={styles.tileSubtitle}>{item.subtitle}</Label>
-              </LinearGradient>
-            </ScalePressable>
-          ))}
+                  <Label style={styles.tileTitle}>{item.title}</Label>
+                  <Label style={styles.tileSubtitle}>{item.subtitle}</Label>
+                </LinearGradient>
+              </ScalePressable>
+            );
+          })}
         </View>
 
         <View style={styles.progressCard}>
           <Label style={styles.progressTitle}>{en.home.todayProgress}</Label>
-          {todayProgressRows.map(row => (
-            <View key={row.id} style={styles.progressRow}>
-              <Label style={styles.progressLabel}>{row.label}</Label>
-              <Label style={styles.progressValue}>{row.value}</Label>
-            </View>
-          ))}
+          {todayProgressRows.map(row => {
+            const value = dashboardStatus[row.id] ?? row.value;
+
+            return (
+              <View key={row.id} style={styles.progressRow}>
+                <Label style={styles.progressLabel}>{row.label}</Label>
+
+                {value ? (
+                  <Label style={styles.progressValue}>{value}</Label>
+                ) : (
+                  <Label style={styles.claimedText}>Claimed</Label>
+                )}
+              </View>
+            );
+          })}
         </View>
       </ScrollView>
     </AppScreen>
@@ -121,12 +137,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingVertical: hp(0.2),
     paddingHorizontal: wp(2),
-    backgroundColor: '#EFF2F5',
+    backgroundColor: COLORS.white,
   },
   statusText: {
     fontSize: hp(1.6),
-    color: '#6A5B58',
-    fontWeight: '700',
+    color: COLORS.accent,
+    fontFamily:FONT.semiBold
   },
   tileTitle: {
     color: COLORS.white,
@@ -144,7 +160,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     paddingHorizontal: wp(4.8),
     paddingVertical: hp(1.7),
-    backgroundColor: '#142755',
+    backgroundColor: palette.pageBottom,
     ...shadows.card,
   },
   progressTitle: {
@@ -160,12 +176,17 @@ const styles = StyleSheet.create({
     paddingVertical: hp(0.55),
   },
   progressLabel: {
-    color: '#E8EEFF',
+    color: COLORS.white + HEX_OPACITY[76],
     fontSize: hp(2.3),
     fontFamily: FONT.medium,
   },
   progressValue: {
-    color: '#4DC65D',
+    color: COLORS.accent,
+    fontSize: hp(1.8),
+    fontFamily: FONT.medium,
+  },
+  claimedText: {
+    color: COLORS.green,
     fontSize: hp(1.8),
     fontFamily: FONT.medium,
   },

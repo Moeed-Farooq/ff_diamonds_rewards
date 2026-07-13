@@ -33,8 +33,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
       },
       statNumber: {
-        marginTop: hp(1),
-        color: COLORS.white,
+        marginTop: hp(2),
+        color: COLORS.yellow,
         fontSize: hp(3.1),
         fontFamily: FONT.semiBold,
       },

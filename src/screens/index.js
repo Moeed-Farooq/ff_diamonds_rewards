@@ -9,6 +9,7 @@ import WatchEarnScreen from './watchEarnScreen';
 import TransactionHistoryScreen from './transactionHistoryScreen';
 import PrivacyPolicyScreen from './privacyPolicyScreen';
 import WelcomeScreen from './welcomeScreen';
+import BlockPuzzleScreen from './blockPuzzleScreen';
 
 export {
   HomeScreen,
@@ -22,4 +23,5 @@ export {
   TransactionHistoryScreen,
   PrivacyPolicyScreen,
   WelcomeScreen,
+  BlockPuzzleScreen
 };

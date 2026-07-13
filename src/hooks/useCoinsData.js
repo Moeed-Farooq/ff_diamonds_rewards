@@ -26,6 +26,7 @@ const useCoinsData = () => {
       count: 0,
       lastOpenAt: null,
     },
+    transactions: profile?.transactions ?? 0,
 
     loading,
     refreshProfile,
