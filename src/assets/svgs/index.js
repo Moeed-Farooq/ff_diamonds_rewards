@@ -1,13 +1,17 @@
 import Home from './Home.svg';
 import HomeActive from './HomeActive.svg';
-import withdraw from './withdraw.svg'
-import withdrawActive from './withdrawActive.svg'
-import profile from './profile.svg'
-import profileActive from './profileActive.svg'
-import coins from './coins.svg'
-import wheel from './wheel.svg'
-import document from './document.svg'
-import fire from './fire.svg'
+import withdraw from './withdraw.svg';
+import withdrawActive from './withdrawActive.svg';
+import profile from './profile.svg';
+import profileActive from './profileActive.svg';
+import coins from './coins.svg';
+import wheel from './wheel.svg';
+import document from './document.svg';
+import fire from './fire.svg';
+import scratch from './scratch.svg';
+import play from './play.svg';
+import calender from './calendar.svg';
+import wheelWhite from './wheelWhite.svg';
 
 export const SVG = {
   Home,
@@ -19,7 +23,11 @@ export const SVG = {
   coins,
   wheel,
   document,
-  fire
+  fire,
+  scratch,
+  play,
+  calender,
+  wheelWhite,
 };
 
 import Octicons from 'react-native-vector-icons/Octicons';

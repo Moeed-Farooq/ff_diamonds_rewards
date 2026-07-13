@@ -37,7 +37,6 @@ const WatchEarnScreen = ({ navigation }) => {
         showBackButton
         onLeftPress={() => navigation.goBack()}
         showCoinPill
-        coins={0}
         variant="topbar"
       />
       <ScrollView

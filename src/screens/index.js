@@ -1,5 +1,5 @@
 import HomeScreen from './homeScreen';
-import WithdrawalScreen from './withdrawalScreen'
+import WithdrawalScreen from './withdrawalScreen';
 import ProfileScreen from './profileScreen';
 import SplashScreen from './splashScreen';
 import DailyLoginScreen from './dailyLoginScreen';
@@ -8,6 +8,7 @@ import SpinWinScreen from './spinWinScreen';
 import WatchEarnScreen from './watchEarnScreen';
 import TransactionHistoryScreen from './transactionHistoryScreen';
 import PrivacyPolicyScreen from './privacyPolicyScreen';
+import WelcomeScreen from './welcomeScreen';
 
 export {
   HomeScreen,
@@ -20,4 +21,5 @@ export {
   WatchEarnScreen,
   TransactionHistoryScreen,
   PrivacyPolicyScreen,
+  WelcomeScreen,
 };

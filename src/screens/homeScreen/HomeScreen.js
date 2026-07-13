@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-  Image,
-} from 'react-native';
+import { ScrollView, StyleSheet, View, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
 import { dashboardCards, todayProgressRows } from '../../dummies';
@@ -14,8 +8,12 @@ import { palette, radius, shadows, spacing } from '../../constants/theme';
 import { COLORS, FONT, hp, wp } from '../../enums/StyleGuide';
 import { en } from '../../languages';
 import { AppHeader } from '../../components';
+import SvgIcon from '../../common/SvgIcon';
+import { useUserProfile } from '../../hooks';
 
 const HomeScreen = ({ navigation }) => {
+  const { username } = useUserProfile();
+
   return (
     <AppScreen>
       <ScrollView
@@ -24,10 +22,9 @@ const HomeScreen = ({ navigation }) => {
       >
         <AppHeader
           variant="hero"
-          title={en.home.greeting}
+          title={`Hello, ${username || 'Player'} 👋`}
           subtitle={en.home.readyToEarn}
           showCoinPill
-          coins={0}
         />
 
         <Label style={styles.sectionTitle}>{en.home.earnDiamonds}</Label>
@@ -46,10 +43,10 @@ const HomeScreen = ({ navigation }) => {
               >
                 <View style={styles.tileTopRow}>
                   <View style={styles.iconBadge}>
-                    <MaterialCommunityIcons
-                      name={item.icon}
-                      color="#F6FBFF"
-                      size={hp(2)}
+                    <SvgIcon
+                      icon={item.icon}
+                      height={hp(2.5)}
+                      width={hp(2.5)}
                     />
                   </View>
                   <View style={styles.statusBadge}>
@@ -139,7 +136,7 @@ const styles = StyleSheet.create({
   tileSubtitle: {
     marginTop: hp(0.45),
     fontSize: hp(1.9),
-    fontFamily:FONT.medium,
+    fontFamily: FONT.medium,
     color: palette.textPrimary,
   },
   progressCard: {

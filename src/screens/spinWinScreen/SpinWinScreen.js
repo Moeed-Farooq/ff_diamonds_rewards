@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -19,6 +19,13 @@ import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
 import { AppHeader } from '../../components';
 import SpinWheelGraphic from '../../components/SpinWheelGraphic';
+import { useCoinsData } from '../../hooks';
+import {
+  getRemainingSpins,
+  canSpinWheel,
+  getSpinRemainingTime,
+} from '../../helpers';
+import { claimSpinReward } from '../../services/firebaseServices';
 
 const size = wp(72);
 const radiusCircle = size / 2;
@@ -27,12 +34,29 @@ const segmentColors = ['#EF4A48', '#3094EB', '#56B662', '#F09A17', '#9B37BC'];
 
 const SpinWinScreen = ({ navigation }) => {
   const rotateValue = useRef(new Animated.Value(0)).current;
+  const { coins, spinWheel } = useCoinsData();
   const currentRotation = useRef(0);
-  const [remainingSpins, setRemainingSpins] = useState(5);
+  const remainingSpins = getRemainingSpins(spinWheel.spinsUsed);
   const [isSpinning, setSpinning] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [wonReward, setWonReward] = useState(0);
+  const [remainingTime, setRemainingTime] = useState('');
+  const canSpin =
+    remainingSpins > 0 ||
+    (remainingSpins === 0 && canSpinWheel(spinWheel.lastResetAt));
 
+  useEffect(() => {
+    if (canSpin) {
+      setRemainingTime('');
+      return;
+    }
+    const update = () => {
+      setRemainingTime(getSpinRemainingTime(spinWheel.lastResetAt));
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [spinWheel.lastResetAt, canSpin]);
   const rotateInterpolate = rotateValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
@@ -40,8 +64,8 @@ const SpinWinScreen = ({ navigation }) => {
 
   const segment = useMemo(() => 360 / wheelRewards.length, []);
 
-  const spin = () => {
-    if (isSpinning || remainingSpins <= 0) {
+  const spin = async () => {
+    if (isSpinning || !canSpin) {
       return;
     }
 
@@ -59,10 +83,10 @@ const SpinWinScreen = ({ navigation }) => {
       duration: 4800,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
-    }).start(() => {
+    }).start(async () => {
       currentRotation.current = finalRotation;
-      setRemainingSpins(value => Math.max(value - 1, 0));
       setWonReward(wheelRewards[selectedIndex]);
+      await claimSpinReward(wheelRewards[selectedIndex]);
       setShowModal(true);
       setSpinning(false);
     });
@@ -75,8 +99,8 @@ const SpinWinScreen = ({ navigation }) => {
         showBackButton
         onLeftPress={() => navigation.goBack()}
         showCoinPill
-        coins={0}
         variant="topbar"
+        coins={coins}
       />
       <ScrollView
         contentContainerStyle={styles.content}
@@ -123,22 +147,18 @@ const SpinWinScreen = ({ navigation }) => {
           </Animated.View>
         </View>
 
-        <ScalePressable
-          onPress={spin}
-          disabled={isSpinning || remainingSpins <= 0}
-        >
+        <ScalePressable onPress={spin} disabled={isSpinning || !canSpin}>
           <LinearGradient
-            colors={
-              remainingSpins <= 0
-                ? ['#7281A5', '#62708E']
-                : ['#2FA4FF', '#2D89E1']
-            }
+            colors={canSpin ? ['#2FA4FF', '#2D89E1'] : ['#7281A5', '#62708E']}
             style={styles.spinButton}
           >
             <Label style={styles.spinButtonText}>
-              {remainingSpins <= 0
-                ? en.spinWin.buttonNoSpins
-                : en.spinWin.buttonSpin}
+              {canSpin
+                ? en.spinWin.remainingSpins.replace(
+                    '{{count}}',
+                    `${remainingSpins}`,
+                  )
+                : remainingTime}
             </Label>
           </LinearGradient>
         </ScalePressable>

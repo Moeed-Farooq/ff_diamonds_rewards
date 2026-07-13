@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -11,20 +11,50 @@ import { en } from '../../languages';
 import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
 import { AppHeader } from '../../components';
+import { useCoinsData } from '../../hooks';
+import {
+  canClaimDailyReward,
+  getRewardDay,
+  getDailyRewardRemainingTime,
+} from '../../helpers';
+import { claimDailyLoginReward } from '../../services/firebaseServices';
 
 const DailyLoginScreen = ({ navigation }) => {
-  const [isClaimed, setClaimed] = useState(false);
+  const [claimLoading, setClaimLoading] = useState(false);
+  const [remainingTime, setRemainingTime] = useState('');
   const [showModal, setShowModal] = useState(false);
-
-  const streakDay = useMemo(() => 0, []);
-
-  const onClaim = () => {
-    if (isClaimed) {
+  const { coins, dailyLogin } = useCoinsData();
+  const streakDay = dailyLogin.currentDay + 1;
+  const onClaim = async () => {
+    if (!canClaim || claimLoading) {
       return;
     }
-    setClaimed(true);
-    setShowModal(true);
+
+    try {
+      setClaimLoading(true);
+
+      await claimDailyLoginReward();
+
+      setShowModal(true);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setClaimLoading(false);
+    }
   };
+
+  const canClaim = canClaimDailyReward(dailyLogin.lastClaimAt);
+  useEffect(() => {
+    const updateTimer = () => {
+      setRemainingTime(getDailyRewardRemainingTime(dailyLogin.lastClaimAt));
+    };
+
+    updateTimer();
+
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [dailyLogin.lastClaimAt]);
 
   return (
     <AppScreen>
@@ -33,8 +63,8 @@ const DailyLoginScreen = ({ navigation }) => {
         showBackButton
         onLeftPress={() => navigation.goBack()}
         showCoinPill
-        coins={0}
         variant="topbar"
+        coins={coins}
       />
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -59,30 +89,41 @@ const DailyLoginScreen = ({ navigation }) => {
             {en.dailyLogin.weeklyRewards}
           </Label>
           <View style={styles.weeklyGrid}>
-            {weeklyRewards.slice(0, 6).map((reward, index) => {
-              const isFirst = index === 0;
+            {weeklyRewards.slice(0, 7).map((reward, index) => {
+              const currentDay = getRewardDay(dailyLogin.currentDay);
+
+              const isClaimed = index < currentDay;
+              const isCurrent = index === currentDay;
+              const isUpcoming = index > currentDay;
+
               return (
                 <ScalePressable key={`${reward}`} style={styles.rewardWrap}>
                   <LinearGradient
                     colors={
-                      isFirst ? ['#FF6B3D', '#D66739'] : ['#173C78', '#173464']
+                      isClaimed
+                        ? [COLORS.grey, COLORS.grey]
+                        : isCurrent
+                        ? [COLORS.darkGreen, COLORS.darkGreen]
+                        : [palette.pageBottom, palette.pageBottom]
                     }
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={[
                       styles.rewardTile,
-                      isFirst && styles.activeRewardTile,
+                      isCurrent && styles.activeRewardTile,
                     ]}
                   >
                     <Label style={styles.rewardDay}>
                       {en.dailyLogin.dayLabel} {index + 1}
                     </Label>
+
                     <View style={styles.rewardValueRow}>
                       <SvgIcon
                         icon={SVG.coins}
                         height={hp(2.6)}
                         width={hp(2.6)}
                       />
+
                       <Label style={styles.rewardValue}>{reward}</Label>
                     </View>
                   </LinearGradient>
@@ -92,17 +133,19 @@ const DailyLoginScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <ScalePressable onPress={onClaim}>
+        <ScalePressable onPress={onClaim} disabled={!canClaim || claimLoading}>
           <LinearGradient
-            colors={isClaimed ? ['#7E8BAA', '#67738C'] : ['#FF6B3D', '#FF723E']}
+            colors={
+              canClaim
+                ? [COLORS.accent, COLORS.orange]
+                : [COLORS.grey, COLORS.grey]
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.claimButton}
           >
             <Label style={styles.claimText}>
-              {isClaimed
-                ? en.dailyLogin.alreadyClaimed
-                : en.dailyLogin.claimCoins}
+              {canClaim ? en.dailyLogin.claimCoins : remainingTime}
             </Label>
           </LinearGradient>
         </ScalePressable>
@@ -184,7 +227,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeRewardTile: {
-    borderColor: '#FFAF7A',
+    borderColor: COLORS.yellow,
     borderWidth: 2,
   },
   rewardDay: {
@@ -231,7 +274,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
-    color:COLORS.green,
+    color: COLORS.green,
     fontSize: hp(3.1),
     fontFamily: FONT.semiBold,
   },

@@ -7,8 +7,10 @@ import { palette, radius, shadows } from '../../constants/theme';
 import { FONT, hp, wp } from '../../enums/StyleGuide';
 import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
+import { useCoinsData } from '../../hooks';
 
-const CoinPill = ({ coins = 0 }) => {
+const CoinPill = () => {
+  const { coins } = useCoinsData();
   return (
     <LinearGradient
       colors={['#FF6A3C', '#E45A31']}
