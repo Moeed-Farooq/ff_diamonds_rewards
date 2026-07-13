@@ -66,6 +66,7 @@ const WelcomeScreen = () => {
 
         <TextInput
           placeholder="Username"
+          placeholderTextColor={COLORS.white}
           value={username}
           onChangeText={setUsername}
           style={styles.input}
@@ -73,6 +74,7 @@ const WelcomeScreen = () => {
 
         <TextInput
           placeholder="Game ID"
+          placeholderTextColor={COLORS.white}
           value={gameId}
           onChangeText={setGameId}
           style={styles.input}
