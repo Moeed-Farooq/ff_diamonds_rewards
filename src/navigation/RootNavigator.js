@@ -46,6 +46,10 @@ const RootNavigator = () => {
           name={SCREEN.PRIVACY_POLICY_SCREEN}
           component={ui.PrivacyPolicyScreen}
         />
+        <Stack.Screen
+          name={SCREEN.BLOCK_PUZZLE_SCREEN}
+          component={ui.BlockPuzzleScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

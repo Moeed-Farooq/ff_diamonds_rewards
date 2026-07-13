@@ -94,6 +94,7 @@ export const createUserProfile = async ({
     gameId: normalizedGameId,
     coins: 0,
     totalEarned: 0,
+    transactions: 0,
     dailyLogin: {
       currentDay: 0,
       lastClaimAt: null,
@@ -197,6 +198,9 @@ export const ensureUserProfile = async profilePayload => {
         count: 0,
         lastOpenAt: null,
       };
+    }
+    if (existingProfile.transactions === undefined) {
+      updates.transactions = 0;
     }
 
     if (Object.keys(updates).length) {
@@ -317,6 +321,7 @@ export const claimDailyLoginReward = async () => {
   await updateUserProfile(uid, {
     coins: (profile.coins || 0) + reward,
     totalEarned: (profile.totalEarned || 0) + reward,
+    transactions: (profile.transactions || 0) + 1,
     dailyLogin: {
       currentDay: nextDay,
       lastClaimAt: firestore.FieldValue.serverTimestamp(),
@@ -368,6 +373,7 @@ export const claimScratchReward = async (cardId, reward) => {
   const updates = {
     coins: (profile.coins || 0) + reward,
     totalEarned: (profile.totalEarned || 0) + reward,
+    transactions: (profile.transactions || 0) + 1,
     scratchWin: {
       claimedCards: nextClaimedCards,
       lastCompletedAt: scratchWin.lastCompletedAt,
@@ -411,7 +417,7 @@ export const claimSpinReward = async reward => {
   await updateUserProfile(null, {
     coins: (profile.coins || 0) + reward,
     totalEarned: (profile.totalEarned || 0) + reward,
-
+    transactions: (profile.transactions || 0) + 1,
     spinWheel: {
       spinsUsed,
       lastResetAt:
@@ -421,69 +427,63 @@ export const claimSpinReward = async reward => {
 };
 
 export const updateDailyStreak = async () => {
-  const uid = getCurrentUser()?.uid;
+  console.log('STEP 1');
 
-  if (!uid) {
-    return;
-  }
+  const uid = getCurrentUser()?.uid;
+  console.log('UID:', uid);
+
+  if (!uid) return;
 
   const profile = await getUserProfile(uid);
-
-  if (!profile) {
-    return;
-  }
+  console.log('PROFILE:', profile);
 
   const streak = profile.dailyStreak || {
     count: 0,
     lastOpenAt: null,
   };
 
-  const now = new Date();
+  console.log('OLD STREAK:', streak);
 
-  if (!streak.lastOpenAt) {
-    await updateUserProfile(uid, {
-      dailyStreak: {
-        count: 1,
-        lastOpenAt: firestore.FieldValue.serverTimestamp(),
-      },
-    });
-    return;
-  }
-
-  const last =
-    typeof streak.lastOpenAt?.toDate === 'function'
-      ? streak.lastOpenAt.toDate()
-      : new Date(streak.lastOpenAt);
-
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  const lastDay = new Date(last.getFullYear(), last.getMonth(), last.getDate());
-
-  const difference =
-    (today.getTime() - lastDay.getTime()) / (1000 * 60 * 60 * 24);
-
-  // Same day
-  if (difference === 0) {
-    return;
-  }
-
-  // Consecutive day
-  if (difference === 1) {
-    await updateUserProfile(uid, {
-      dailyStreak: {
-        count: streak.count + 1,
-        lastOpenAt: firestore.FieldValue.serverTimestamp(),
-      },
-    });
-
-    return;
-  }
-
-  // Missed one or more days
   await updateUserProfile(uid, {
     dailyStreak: {
       count: 1,
       lastOpenAt: firestore.FieldValue.serverTimestamp(),
     },
+  });
+
+  console.log('UPDATED');
+};
+
+
+export const addCoins = async coins => {
+  const profile = await getUserProfile();
+
+  if (!profile) return;
+
+  await updateUserProfile(null, {
+    coins: (profile.coins || 0) + coins,
+    totalEarned: (profile.totalEarned || 0) + coins,
+    transactions: (profile.transactions || 0) + 1,
+  });
+};
+
+
+export const subscribeToCurrentUserData = callback => {
+  const uid = getCurrentUser()?.uid;
+
+  if (!uid) {
+    return () => {};
+  }
+
+  return usersCollection.doc(uid).onSnapshot(snapshot => {
+    if (!snapshot.exists) {
+      callback(null);
+      return;
+    }
+
+    callback({
+      id: snapshot.id,
+      ...snapshot.data(),
+    });
   });
 };

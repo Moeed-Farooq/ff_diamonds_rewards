@@ -3,7 +3,6 @@ import { SCREEN } from '../enums';
 import { en } from '../languages';
 
 
-
 export const bottomIcons = {
   [SCREEN.HOME_SCREEN]: {
     iconName: SVG.Home,
@@ -28,7 +27,7 @@ export const stats = [
     color: '#DAE36A',
     label: en.profile.totalEarned,
   },
-  { icon: SVG.fire, color: '#FEAA2F', label: en.profile.dailyStreak},
+  { icon: SVG.fire, color: '#FEAA2F', label: en.profile.dailyStreak },
   {
     icon: SVG.document,
     color: '#3DA2FF',
@@ -42,7 +41,6 @@ export const dashboardCards = [
     title: en.rewardData.dashboardDailyTitle,
     subtitle: en.rewardData.dashboardDailySubtitle,
     icon: SVG.calender,
-    status: en.rewardData.statusAvailable,
     colors: ['#FF6A3C', '#D8653A'],
     route: SCREEN.DAILY_LOGIN_SCREEN,
   },
@@ -51,7 +49,6 @@ export const dashboardCards = [
     title: en.rewardData.dashboardScratchTitle,
     subtitle: en.rewardData.dashboardScratchSubtitle,
     icon: SVG.scratch,
-    status: en.rewardData.status6Left,
     colors: ['#B75DE5', '#931DBD'],
     route: SCREEN.SCRATCH_WIN_SCREEN,
   },
@@ -60,7 +57,6 @@ export const dashboardCards = [
     title: en.rewardData.dashboardSpinTitle,
     subtitle: en.rewardData.dashboardSpinSubtitle,
     icon: SVG.wheelWhite,
-    status: en.rewardData.status5Left,
     colors: ['#3AA9F8', '#2D7DD7'],
     route: SCREEN.SPIN_WIN_SCREEN,
   },
@@ -69,9 +65,16 @@ export const dashboardCards = [
     title: en.rewardData.dashboardWatchTitle,
     subtitle: en.rewardData.dashboardWatchSubtitle,
     icon: SVG.play,
-    status: en.rewardData.statusAvailable,
     colors: ['#57C25D', '#3A9B4A'],
     route: SCREEN.WATCH_EARN_SCREEN,
+  },
+  {
+    id: 'blockPuzzle',
+    title: en.rewardData.dashboardBlockPuzzleTitle,
+    subtitle: en.rewardData.dashboardBlockPuzzleSubtitle,
+    icon: SVG.play,
+    colors: ['#57C25D', '#3A9B4A'],
+    route: SCREEN.BLOCK_PUZZLE_SCREEN,
   },
 ];
 
@@ -79,17 +82,14 @@ export const todayProgressRows = [
   {
     id: 'daily',
     label: en.rewardData.todayDailyBonus,
-    value: en.rewardData.statusAvailable,
   },
   {
     id: 'scratch',
     label: en.rewardData.todayScratchCards,
-    value: en.rewardData.today6Remaining,
   },
   {
     id: 'spin',
     label: en.rewardData.todaySpins,
-    value: en.rewardData.today5Remaining,
   },
 ];
 
@@ -181,4 +181,48 @@ export const profileActions = [
     icon: 'share-variant-outline',
     color: '#9A42C9',
   },
+];
+
+export const BLOCK_SHAPES = [
+  [[1]],
+  [[1, 1]],
+  [[1], [1]],
+  [
+    [1, 1],
+    [1, 1],
+  ],
+  [[1, 1, 1]],
+  [[1], [1], [1]],
+  [
+    [1, 0],
+    [1, 1],
+  ],
+  [
+    [0, 1],
+    [1, 1],
+  ],
+  [
+    [1, 1],
+    [1, 0],
+  ],
+  [
+    [1, 1],
+    [0, 1],
+  ],
+  [
+    [1, 1, 1],
+    [0, 1, 0],
+  ],
+  [
+    [0, 1, 0],
+    [1, 1, 1],
+  ],
+];
+
+export const SHAPE_COLORS = [
+  '#c9b8bc',
+  '#FFBB00',
+  '#dbedff',
+  '#43bdf5',
+  '#ff9557',
 ];

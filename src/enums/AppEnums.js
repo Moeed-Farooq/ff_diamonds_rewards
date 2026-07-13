@@ -10,6 +10,7 @@ export const SCREEN = {
   SPIN_WIN_SCREEN: 'SpinWinScreen',
   WATCH_EARN_SCREEN: 'WatchEarnScreen',
   WELCOME_SCREEN: 'WelcomeScreen',
+  BLOCK_PUZZLE_SCREEN: 'BlockPuzzleScreen',
 };
 export const TAB = {
   BOTTOM: 'BottomNavigator',
@@ -26,4 +27,3 @@ export const FIREBASE_COLLECTIONS = {
   USERS_COLLECTION: 'users',
   ADS_COLLECTION: 'ads',
 };
-

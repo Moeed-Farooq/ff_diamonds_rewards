@@ -18,7 +18,7 @@ const ProfileScreen = ({ navigation }) => {
   const [isContactVisible, setIsContactVisible] = useState(false);
   const popupTranslateY = useRef(new Animated.Value(100)).current;
   const { username, gameId } = useUserProfile();
-  const { coins ,dailyStreak } = useCoinsData();
+  const { coins ,dailyStreak,transactions  } = useCoinsData();
   console.log(dailyStreak);
 
   const profileStats = [
@@ -32,7 +32,7 @@ const ProfileScreen = ({ navigation }) => {
     },
     {
       ...stats[2],
-      value: 0,
+      value: transactions,
     },
   ];
 

@@ -9,7 +9,10 @@ import { palette } from '../../constants/theme';
 import { en } from '../../languages';
 import Image from '../../common/Image';
 import { IMAGES } from '../../assets/images';
-import { hasCompletedOnboarding } from '../../services';
+import {
+  hasCompletedOnboarding,
+  updateDailyStreak,
+} from '../../services/firebaseServices';
 
 const SplashScreen = () => {
   const navigation = useNavigation();
@@ -20,6 +23,7 @@ const SplashScreen = () => {
       try {
         await new Promise(resolve => setTimeout(resolve, 1800));
         const result = await hasCompletedOnboarding();
+        await updateDailyStreak();
         if (!mounted) return;
         navigation.reset({
           index: 0,

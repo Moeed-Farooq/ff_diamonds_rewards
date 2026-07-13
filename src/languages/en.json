@@ -82,6 +82,18 @@
     "emptyTitle": "No Transactions Yet",
     "emptySubtitle": "Start earning coins to see your transaction history"
   },
+  "blockPuzzle": {
+  "block": "BLOCK",
+  "puzzle": "PUZZLE",
+  "blockPuzzle": "Block Puzzle",
+  "eliteChallenge": "Elite Challenge",
+   "score": "Score",
+  "level": "Level",
+  "gameOver": "GAME OVER",
+  "noSpace": "You ran out of space !",
+  "finalScore": "FINAL SCORE",
+  "playAgain": "Play Again"
+  },
   "privacyPolicy": {
     "screenTitle": "Privacy Policy",
     "lastUpdated": "Last updated: 12/7/2026",
@@ -126,6 +138,8 @@
     "dashboardSpinSubtitle": "Spin the wheel of\nfortune",
     "dashboardWatchTitle": "Watch &\nEarn",
     "dashboardWatchSubtitle": "Watch ads to earn\ndiamonds",
+    "dashboardBlockPuzzleTitle": "Play &\nEarn",
+    "dashboardBlockPuzzleSubtitle": "Place puzzles to earn\ndiamonds",
     "statusAvailable": "Available",
     "status6Left": "6 left",
     "status5Left": "5 left",
