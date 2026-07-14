@@ -8,8 +8,11 @@ import { palette, radius, shadows, spacing } from '../../constants/theme';
 import { COLORS, FONT, HEX_OPACITY, hp, wp } from '../../enums/StyleGuide';
 import { AppHeader } from '../../components';
 import PolicySectionBlock from '../../components/PolicySectionBlock';
+import { useInterstitialAd } from '../../hooks';
 
 const PrivacyPolicyScreen = ({ navigation }) => {
+  useInterstitialAd();
+
   return (
     <AppScreen>
       <AppHeader
@@ -22,7 +25,11 @@ const PrivacyPolicyScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topCard}>
           <View style={styles.policyIconWrap}>
-            <MaterialCommunityIcons name="shield-check" size={hp(4.2)} color="#4FCA6C" />
+            <MaterialCommunityIcons
+              name="shield-check"
+              size={hp(4.2)}
+              color={palette.green}
+            />
           </View>
           <View style={styles.topCardTextWrap}>
             <Label style={styles.topCardTitle}>{en.privacyPolicy.screenTitle}</Label>
@@ -129,7 +136,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#274B57',
+    backgroundColor: palette.privacyIconBg,
   },
   topCardTextWrap: {
     marginLeft: wp(4),
@@ -191,7 +198,7 @@ const styles = StyleSheet.create({
   footerCard: {
     marginTop: hp(1.8),
     borderRadius: radius.lg,
-    backgroundColor: '#1D315C',
+    backgroundColor: palette.privacyFooterBg,
     paddingVertical: hp(1.6),
     paddingHorizontal: wp(5),
     marginBottom: hp(2),

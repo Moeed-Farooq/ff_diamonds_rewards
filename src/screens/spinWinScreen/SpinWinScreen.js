@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -11,52 +11,64 @@ import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
-import { wheelRewards } from '../../dummies';
-import { palette, radius, shadows, spacing } from '../../constants/theme';
+import { wheelRewards, wheelSegmentColors } from '../../dummies';
+import { gradients, palette, radius, shadows, spacing } from '../../constants/theme';
 import { COLORS, FONT, hp, wp } from '../../enums/StyleGuide';
 import { en } from '../../languages';
 import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
-import { AppHeader } from '../../components';
+import { AppHeader, RewardStatusModal } from '../../components';
 import SpinWheelGraphic from '../../components/SpinWheelGraphic';
-import { useCoinsData } from '../../hooks';
+import { useCoinsData, useInterstitialAd, useRewardedAd } from '../../hooks';
+import { getRemainingSpins, canSpinWheel } from '../../helpers';
 import {
-  getRemainingSpins,
-  canSpinWheel,
-  getSpinRemainingTime,
-} from '../../helpers';
-import { claimSpinReward } from '../../services/firebaseServices';
+  claimSpinReward,
+  grantExtraSpinFromRewardedAd,
+} from '../../services/firebaseServices';
 
 const size = wp(72);
 const radiusCircle = size / 2;
 const center = radiusCircle;
-const segmentColors = ['#EF4A48', '#3094EB', '#56B662', '#F09A17', '#9B37BC'];
 
 const SpinWinScreen = ({ navigation }) => {
   const rotateValue = useRef(new Animated.Value(0)).current;
-  const { coins, spinWheel } = useCoinsData();
+  const { coins, spinWheel, refreshProfile } = useCoinsData();
+  const { showRewardedAd, isLoading: isRewardedLoading } = useRewardedAd();
   const currentRotation = useRef(0);
-  const remainingSpins = getRemainingSpins(spinWheel.spinsUsed);
-  const [isSpinning, setSpinning] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [wonReward, setWonReward] = useState(0);
-  const [remainingTime, setRemainingTime] = useState('');
-  const canSpin =
-    remainingSpins > 0 ||
-    (remainingSpins === 0 && canSpinWheel(spinWheel.lastResetAt));
+  const hasDailyResetElapsed =
+    !!spinWheel.lastResetAt && canSpinWheel(spinWheel.lastResetAt);
+  const effectiveSpinsUsed = hasDailyResetElapsed
+    ? 0
+    : spinWheel.spinsUsed || 0;
+  const effectiveExtraSpins = hasDailyResetElapsed
+    ? 0
+    : Math.max(0, Number(spinWheel.extraSpins) || 0);
+  const remainingSpins =
+    getRemainingSpins(effectiveSpinsUsed) + effectiveExtraSpins;
+  const shouldWatchAdForSpin = remainingSpins === 0;
 
-  useEffect(() => {
-    if (canSpin) {
-      setRemainingTime('');
-      return;
-    }
-    const update = () => {
-      setRemainingTime(getSpinRemainingTime(spinWheel.lastResetAt));
-    };
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, [spinWheel.lastResetAt, canSpin]);
+  // The silent failure was caused by this screen trying to manage two ad flows
+  // at the same time: the focus interstitial and the rewarded ad CTA. When the
+  // user has no spins left, disable the focus interstitial so the rewarded flow
+  // is the only ad action competing for presentation on this screen.
+  useInterstitialAd(!shouldWatchAdForSpin);
+
+  const [isSpinning, setSpinning] = useState(false);
+  const [isGrantingExtraSpin, setIsGrantingExtraSpin] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusModalTitle, setStatusModalTitle] = useState('');
+  const [statusModalMessage, setStatusModalMessage] = useState('');
+  const [wonReward, setWonReward] = useState(0);
+  const canSpin = remainingSpins > 0;
+  const isActionBusy = isSpinning || isGrantingExtraSpin || isRewardedLoading;
+
+  const openStatusModal = (title, message) => {
+    setStatusModalTitle(title);
+    setStatusModalMessage(message);
+    setShowStatusModal(true);
+  };
+
   const rotateInterpolate = rotateValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
@@ -65,7 +77,7 @@ const SpinWinScreen = ({ navigation }) => {
   const segment = useMemo(() => 360 / wheelRewards.length, []);
 
   const spin = async () => {
-    if (isSpinning || !canSpin) {
+    if (isActionBusy || !canSpin) {
       return;
     }
 
@@ -86,10 +98,77 @@ const SpinWinScreen = ({ navigation }) => {
     }).start(async () => {
       currentRotation.current = finalRotation;
       setWonReward(wheelRewards[selectedIndex]);
-      await claimSpinReward(wheelRewards[selectedIndex]);
-      setShowModal(true);
-      setSpinning(false);
+
+      try {
+        await claimSpinReward(wheelRewards[selectedIndex]);
+        setShowModal(true);
+      } catch (error) {
+        openStatusModal(
+          en.spinWin.spinFailedTitle,
+          error?.message || en.spinWin.spinFailedMessage,
+        );
+      } finally {
+        setSpinning(false);
+      }
     });
+  };
+
+  const grantAdBasedExtraSpin = async () => {
+    if (isActionBusy || !shouldWatchAdForSpin) {
+      return;
+    }
+
+    setIsGrantingExtraSpin(true);
+
+    try {
+      const adResult = await showRewardedAd();
+
+      // Guard against malformed or empty results from the existing hook/service.
+      // If the SDK does not produce a usable success payload, we must still show
+      // feedback instead of silently dropping the flow.
+      const didShowAd = Boolean(adResult?.shown);
+      const rewardEarned = Boolean(adResult?.rewardEarned);
+
+      if (!didShowAd) {
+        openStatusModal(
+          en.spinWin.adUnavailableTitle,
+          en.spinWin.adUnavailableMessage,
+        );
+        return;
+      }
+
+      if (!rewardEarned) {
+        openStatusModal(
+          en.spinWin.rewardNotEarnedTitle,
+          en.spinWin.rewardNotEarnedMessage,
+        );
+        return;
+      }
+
+      await grantExtraSpinFromRewardedAd();
+      await refreshProfile();
+
+      openStatusModal(
+        en.spinWin.freeSpinAddedTitle,
+        en.spinWin.freeSpinAddedMessage,
+      );
+    } catch (error) {
+      openStatusModal(
+        en.spinWin.addSpinFailedTitle,
+        error?.message || en.spinWin.addSpinFailedMessage,
+      );
+    } finally {
+      setIsGrantingExtraSpin(false);
+    }
+  };
+
+  const onPrimaryButtonPress = () => {
+    if (shouldWatchAdForSpin) {
+      grantAdBasedExtraSpin();
+      return;
+    }
+
+    spin();
   };
 
   return (
@@ -135,11 +214,11 @@ const SpinWinScreen = ({ navigation }) => {
             <SpinWheelGraphic
               size={size}
               rewards={wheelRewards}
-              segmentColors={segmentColors}
+              segmentColors={wheelSegmentColors}
               center={center}
               radiusCircle={radiusCircle}
               textStyle={{
-                fill: '#F6FAFF',
+                fill: COLORS.white,
                 fontSize: hp(2.2),
                 fontFamily: FONT.bold,
               }}
@@ -147,18 +226,26 @@ const SpinWinScreen = ({ navigation }) => {
           </Animated.View>
         </View>
 
-        <ScalePressable onPress={spin} disabled={isSpinning || !canSpin}>
+        <ScalePressable onPress={onPrimaryButtonPress} disabled={isActionBusy}>
           <LinearGradient
-            colors={canSpin ? ['#2FA4FF', '#2D89E1'] : ['#7281A5', '#62708E']}
+            colors={
+              shouldWatchAdForSpin
+                ? gradients.rewardedAction
+                : gradients.spinAction
+            }
             style={styles.spinButton}
           >
             <Label style={styles.spinButtonText}>
-              {canSpin
+              {isRewardedLoading || isGrantingExtraSpin
+                ? en.spinWin.buttonLoadingAd
+                : shouldWatchAdForSpin
+                ? en.spinWin.buttonWatchAd
+                : canSpin
                 ? en.spinWin.remainingSpins.replace(
                     '{{count}}',
                     `${remainingSpins}`,
                   )
-                : remainingTime}
+                : en.spinWin.buttonNoSpins}
             </Label>
           </LinearGradient>
         </ScalePressable>
@@ -182,6 +269,14 @@ const SpinWinScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      <RewardStatusModal
+        visible={showStatusModal}
+        title={statusModalTitle}
+        message={statusModalMessage}
+        buttonLabel={en.watchEarn.modalButton}
+        onClose={() => setShowStatusModal(false)}
+      />
     </AppScreen>
   );
 };
@@ -221,13 +316,13 @@ const styles = StyleSheet.create({
     width: size + wp(7),
     height: size + wp(7),
     borderRadius: (size + wp(7)) / 2,
-    backgroundColor: 'rgba(56,148,243,0.2)',
+    backgroundColor: palette.blueGlowSoft,
   },
   pointer: {
     position: 'absolute',
     zIndex: 5,
     top: hp(-0.8),
-    backgroundColor: '#F6FAFF',
+    backgroundColor: palette.spinPointerBg,
     borderRadius: radius.md,
     width: wp(8.5),
     height: hp(3.7),

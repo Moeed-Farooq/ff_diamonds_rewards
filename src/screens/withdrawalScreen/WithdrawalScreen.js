@@ -20,7 +20,7 @@ const WithdrawalScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.heroCard}>
-          <View style={{ alignSelf: 'center' }}>
+          <View style={styles.heroIconWrap}>
             <MaterialCommunityIcons
               name="gift"
               size={hp(6.8)}
@@ -42,7 +42,7 @@ const WithdrawalScreen = () => {
             <MaterialCommunityIcons
               name="information"
               size={hp(3.4)}
-              color="#2CA0FF"
+              color={palette.withdrawalInfoIcon}
             />
             <Label style={styles.infoTitle}>{en.withdrawal.infoTitle}</Label>
           </View>
@@ -68,6 +68,9 @@ const styles = StyleSheet.create({
     paddingVertical: hp(3),
     paddingHorizontal: wp(4.5),
     ...shadows.card,
+  },
+  heroIconWrap: {
+    alignSelf: 'center',
   },
   heroTitle: {
     marginTop: hp(2.7),
@@ -96,7 +99,7 @@ const styles = StyleSheet.create({
   itemCard: {
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
+    borderColor: palette.whiteTint16,
     height: hp(30),
     padding: wp(2.7),
     alignItems: 'center',
@@ -107,7 +110,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: hp(6.1),
     borderRadius: radius.sm,
-    backgroundColor: '#ECEEF3',
+    backgroundColor: palette.withdrawalItemImageBg,
     alignItems: 'center',
     justifyContent: 'center',
   },

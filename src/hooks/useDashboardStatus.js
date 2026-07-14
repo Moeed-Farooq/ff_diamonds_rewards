@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
+import { en } from '../languages';
 import { subscribeToCurrentUserData } from '../services/firebaseServices';
 
 const MAX_SCRATCH = 6;
 const MAX_SPINS = 5;
+
+const formatRemainingStatus = count =>
+  en.rewardData.statusRemaining.replace('{{count}}', `${count}`);
 
 const isToday = timestamp => {
   if (!timestamp) return false;
@@ -22,18 +26,18 @@ const isToday = timestamp => {
 };
 
 const getDailyStatus = dailyLogin => {
-  return !isToday(dailyLogin?.lastClaimAt) ? 'Available' : '';
+  return !isToday(dailyLogin?.lastClaimAt) ? en.rewardData.statusAvailable : '';
 };
 
 const getScratchStatus = scratchWin => {
   if (!scratchWin) {
-    return `${MAX_SCRATCH} Left`;
+    return formatRemainingStatus(MAX_SCRATCH);
   }
 
   if (scratchWin.lastCompletedAt) {
     return isToday(scratchWin.lastCompletedAt)
-      ? '0 Left'
-      : `${MAX_SCRATCH} Left`;
+      ? formatRemainingStatus(0)
+      : formatRemainingStatus(MAX_SCRATCH);
   }
 
   const left = Math.max(
@@ -41,35 +45,32 @@ const getScratchStatus = scratchWin => {
     MAX_SCRATCH - (scratchWin.claimedCards?.length || 0),
   );
 
-  return `${left} Left`;
+  return formatRemainingStatus(left);
 };
 
 const getSpinStatus = spinWheel => {
   if (!spinWheel) {
-    return `${MAX_SPINS} Left`;
+    return formatRemainingStatus(MAX_SPINS);
   }
 
-  if (spinWheel.lastResetAt) {
-    return isToday(spinWheel.lastResetAt)
-      ? '0 Left'
-      : `${MAX_SPINS} Left`;
+  if (spinWheel.lastResetAt && !isToday(spinWheel.lastResetAt)) {
+    return formatRemainingStatus(MAX_SPINS);
   }
 
-  const left = Math.max(
-    0,
-    MAX_SPINS - (spinWheel.spinsUsed || 0),
-  );
+  const dailyLeft = Math.max(0, MAX_SPINS - (spinWheel.spinsUsed || 0));
+  const extraSpins = Math.max(0, Number(spinWheel.extraSpins) || 0);
+  const left = dailyLeft + extraSpins;
 
-  return `${left} Left`;
+  return formatRemainingStatus(left);
 };
 
 export const useDashboardStatus = () => {
   const [status, setStatus] = useState({
     daily: '',
-    scratch: `${MAX_SCRATCH} Left`,
-    spin: `${MAX_SPINS} Left`,
-    watch: 'Available',
-    blockPuzzle: 'Available',
+    scratch: formatRemainingStatus(MAX_SCRATCH),
+    spin: formatRemainingStatus(MAX_SPINS),
+    watch: en.rewardData.statusAvailable,
+    blockPuzzle: en.rewardData.statusAvailable,
   });
 
   useEffect(() => {
@@ -80,8 +81,8 @@ export const useDashboardStatus = () => {
         daily: getDailyStatus(user.dailyLogin),
         scratch: getScratchStatus(user.scratchWin),
         spin: getSpinStatus(user.spinWheel),
-        watch: 'Available',
-        blockPuzzle: 'Available',
+        watch: en.rewardData.statusAvailable,
+        blockPuzzle: en.rewardData.statusAvailable,
       });
     });
 

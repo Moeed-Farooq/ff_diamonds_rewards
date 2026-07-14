@@ -4,7 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
-import { palette, radius, shadows, spacing } from '../../constants/theme';
+import { gradients, palette, radius, shadows, spacing } from '../../constants/theme';
 import { COLORS, FONT, hp, wp } from '../../enums/StyleGuide';
 import { en } from '../../languages';
 import SvgIcon from '../../common/SvgIcon';
@@ -31,7 +31,7 @@ const ScratchWinScreen = ({ navigation }) => {
   const [remainingTime, setRemainingTime] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedReward, setSelectedReward] = useState(null);
-  const { coins, scratchWin } = useCoinsData();
+  const { scratchWin } = useCoinsData();
   const canPlay = canPlayScratch(scratchWin.lastCompletedAt);
 
   useEffect(() => {
@@ -123,10 +123,10 @@ const ScratchWinScreen = ({ navigation }) => {
               <LinearGradient
                 colors={
                   !canPlay
-                    ? ['#5f5e5e', '#464040'] // Timer active - Grey
+                    ? gradients.scratchDisabled
                     : scratchWin.claimedCards?.includes(card.id)
-                    ? ['#2B4588', '#27407B'] // Claimed
-                    : ['#B96CE3', '#9B2BC8'] // Available
+                    ? gradients.scratchClaimed
+                    : gradients.scratchAvailable
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}

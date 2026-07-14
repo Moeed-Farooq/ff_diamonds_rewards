@@ -20,6 +20,7 @@ const useCoinsData = () => {
     spinWheel: profile?.spinWheel ?? {
       spinsUsed: 0,
       lastResetAt: null,
+      extraSpins: 0,
     },
 
     dailyStreak: profile?.dailyStreak ?? {

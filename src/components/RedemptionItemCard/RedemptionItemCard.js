@@ -3,6 +3,7 @@ import { Animated, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
+import { gradients, palette } from '../../constants/theme';
 import { ScalePressable } from '../ui';
 import { hp } from '../../enums/StyleGuide';
 
@@ -25,7 +26,7 @@ const RedemptionItemCard = ({ item, styles }) => {
 
   return (
     <ScalePressable style={styles.itemWrap}>
-      <LinearGradient colors={['#1E2857', '#1A2A5B']} style={styles.itemCard}>
+      <LinearGradient colors={gradients.redemptionCard} style={styles.itemCard}>
         <View style={styles.itemImageBox}>
           <Label style={styles.itemImageText}>{item.title}</Label>
         </View>
@@ -36,7 +37,11 @@ const RedemptionItemCard = ({ item, styles }) => {
         <Label style={styles.itemProgressText}>
           {item.progress} / {item.goal}
         </Label>
-        <MaterialCommunityIcons name="lock" size={hp(2.6)} color="#A3ADCB" />
+        <MaterialCommunityIcons
+          name="lock"
+          size={hp(2.6)}
+          color={palette.lockMuted}
+        />
       </LinearGradient>
     </ScalePressable>
   );
