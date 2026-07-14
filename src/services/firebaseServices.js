@@ -2,7 +2,7 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { FIREBASE_COLLECTIONS } from '../enums';
 import { weeklyRewards, scratchRewards } from '../dummies';
-import { canSpinWheel } from '../helpers';
+import { canSpinWheel, canPlayScratch } from '../helpers';
 
 const usersCollection = firestore().collection(
   FIREBASE_COLLECTIONS.USERS_COLLECTION,
@@ -100,6 +100,7 @@ export const createUserProfile = async ({
     scratchWin: {
       claimedCards: [],
       lastCompletedAt: null,
+      extraScratches: 0,
     },
     spinWheel: {
       spinsUsed: 0,
@@ -184,6 +185,12 @@ export const ensureUserProfile = async profilePayload => {
       updates.scratchWin = {
         claimedCards: [],
         lastCompletedAt: null,
+        extraScratches: 0,
+      };
+    } else if (existingProfile.scratchWin.extraScratches === undefined) {
+      updates.scratchWin = {
+        ...existingProfile.scratchWin,
+        extraScratches: 0,
       };
     }
     if (!existingProfile.spinWheel) {
@@ -455,37 +462,69 @@ export const claimScratchReward = async (cardId, reward) => {
   const scratchWin = profile.scratchWin || {
     claimedCards: [],
     lastCompletedAt: null,
+    extraScratches: 0,
   };
 
-  // 24 hours complete ho chuke hain to reset
-  if (
-    scratchWin.lastCompletedAt &&
-    Date.now() - scratchWin.lastCompletedAt.toDate().getTime() >=
-      24 * 60 * 60 * 1000
-  ) {
-    scratchWin.claimedCards = [];
-    scratchWin.lastCompletedAt = null;
+  let claimedCards = [...(scratchWin.claimedCards || [])];
+  let lastCompletedAt = scratchWin.lastCompletedAt || null;
+  let extraScratches = Math.max(0, Number(scratchWin.extraScratches) || 0);
+
+  // 24 hours complete - start a fresh daily cycle
+  if (lastCompletedAt && canPlayScratch(lastCompletedAt)) {
+    claimedCards = [];
+    lastCompletedAt = null;
+    extraScratches = 0;
   }
 
-  // Already claimed
-  if (scratchWin.claimedCards.includes(cardId)) {
+  const inCooldown = !!lastCompletedAt && !canPlayScratch(lastCompletedAt);
+
+  if (claimedCards.includes(cardId)) {
     return;
   }
 
-  const nextClaimedCards = [...scratchWin.claimedCards, cardId];
+  if (inCooldown) {
+    if (extraScratches <= 0) {
+      throw new Error('No scratches left');
+    }
 
-  const updates = {
+    await awardCoinsWithTransaction({
+      uidParam: uid,
+      coins: reward,
+      type: 'scratch',
+      title: `Scratch & Win - ${reward} coins`,
+      screen: 'ScratchWinScreen',
+      game: 'Scratch & Win',
+      rewardSource: 'Scratch Card',
+      profileUpdates: {
+        scratchWin: {
+          claimedCards: [...claimedCards, cardId],
+          lastCompletedAt,
+          extraScratches: extraScratches - 1,
+        },
+      },
+    });
+
+    return;
+  }
+
+  const nextClaimedCards = [...claimedCards, cardId];
+
+  let updates = {
     scratchWin: {
       claimedCards: nextClaimedCards,
-      lastCompletedAt: scratchWin.lastCompletedAt,
+      lastCompletedAt,
+      extraScratches,
     },
   };
 
-  // Sab cards complete
+  // All daily cards complete - start cooldown
   if (nextClaimedCards.length >= scratchRewards.length) {
-    updates.scratchWin = {
-      claimedCards: [],
-      lastCompletedAt: firestore.FieldValue.serverTimestamp(),
+    updates = {
+      scratchWin: {
+        claimedCards: [],
+        lastCompletedAt: firestore.FieldValue.serverTimestamp(),
+        extraScratches: 0,
+      },
     };
   }
 
@@ -498,6 +537,63 @@ export const claimScratchReward = async (cardId, reward) => {
     game: 'Scratch & Win',
     rewardSource: 'Scratch Card',
     profileUpdates: updates,
+  });
+};
+
+export const grantExtraScratchFromRewardedAd = async () => {
+  const uid = getCurrentUser()?.uid;
+
+  if (!uid) {
+    throw new Error('User not found.');
+  }
+
+  const userRef = usersCollection.doc(uid);
+
+  await firestore().runTransaction(async transaction => {
+    const snapshot = await transaction.get(userRef);
+
+    if (!snapshot.exists) {
+      throw new Error('Profile not found.');
+    }
+
+    const profile = snapshot.data() || {};
+    const scratchWin = profile.scratchWin || {
+      claimedCards: [],
+      lastCompletedAt: null,
+      extraScratches: 0,
+    };
+
+    let claimedCards = [...(scratchWin.claimedCards || [])];
+    let lastCompletedAt = scratchWin.lastCompletedAt || null;
+    let extraScratches = Math.max(0, Number(scratchWin.extraScratches) || 0);
+
+    if (lastCompletedAt && canPlayScratch(lastCompletedAt)) {
+      claimedCards = [];
+      lastCompletedAt = null;
+      extraScratches = 0;
+    }
+
+    const inCooldown = !!lastCompletedAt && !canPlayScratch(lastCompletedAt);
+
+    // Only grant extras while daily scratches are on cooldown.
+    if (!inCooldown) {
+      return;
+    }
+
+    extraScratches += 1;
+
+    transaction.set(
+      userRef,
+      {
+        scratchWin: {
+          claimedCards,
+          lastCompletedAt,
+          extraScratches,
+        },
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
   });
 };
 

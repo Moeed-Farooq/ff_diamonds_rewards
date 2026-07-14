@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -19,8 +19,12 @@ import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
 import { AppHeader, RewardStatusModal } from '../../components';
 import SpinWheelGraphic from '../../components/SpinWheelGraphic';
-import { useCoinsData, useInterstitialAd, useRewardedAd } from '../../hooks';
-import { getRemainingSpins, canSpinWheel } from '../../helpers';
+import { useCoinsData, useRewardedAd } from '../../hooks';
+import {
+  getRemainingSpins,
+  canSpinWheel,
+  getSpinRemainingTime,
+} from '../../helpers';
 import {
   claimSpinReward,
   grantExtraSpinFromRewardedAd,
@@ -37,6 +41,8 @@ const SpinWinScreen = ({ navigation }) => {
   const currentRotation = useRef(0);
   const hasDailyResetElapsed =
     !!spinWheel.lastResetAt && canSpinWheel(spinWheel.lastResetAt);
+  const isWaitingForReset =
+    !!spinWheel.lastResetAt && !canSpinWheel(spinWheel.lastResetAt);
   const effectiveSpinsUsed = hasDailyResetElapsed
     ? 0
     : spinWheel.spinsUsed || 0;
@@ -47,12 +53,6 @@ const SpinWinScreen = ({ navigation }) => {
     getRemainingSpins(effectiveSpinsUsed) + effectiveExtraSpins;
   const shouldWatchAdForSpin = remainingSpins === 0;
 
-  // The silent failure was caused by this screen trying to manage two ad flows
-  // at the same time: the focus interstitial and the rewarded ad CTA. When the
-  // user has no spins left, disable the focus interstitial so the rewarded flow
-  // is the only ad action competing for presentation on this screen.
-  useInterstitialAd(!shouldWatchAdForSpin);
-
   const [isSpinning, setSpinning] = useState(false);
   const [isGrantingExtraSpin, setIsGrantingExtraSpin] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -60,8 +60,26 @@ const SpinWinScreen = ({ navigation }) => {
   const [statusModalTitle, setStatusModalTitle] = useState('');
   const [statusModalMessage, setStatusModalMessage] = useState('');
   const [wonReward, setWonReward] = useState(0);
+  const [remainingTime, setRemainingTime] = useState('');
   const canSpin = remainingSpins > 0;
   const isActionBusy = isSpinning || isGrantingExtraSpin || isRewardedLoading;
+
+  useEffect(() => {
+    if (!isWaitingForReset) {
+      setRemainingTime('');
+      return;
+    }
+
+    const updateTimer = () => {
+      setRemainingTime(getSpinRemainingTime(spinWheel.lastResetAt));
+    };
+
+    updateTimer();
+
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [spinWheel.lastResetAt, isWaitingForReset]);
 
   const openStatusModal = (title, message) => {
     setStatusModalTitle(title);
@@ -75,6 +93,40 @@ const SpinWinScreen = ({ navigation }) => {
   });
 
   const segment = useMemo(() => 360 / wheelRewards.length, []);
+
+  const summarySubtitle = (() => {
+    if (remainingSpins > 0) {
+      return en.spinWin.remainingSpins.replace(
+        '{{count}}',
+        `${remainingSpins}`,
+      );
+    }
+
+    if (isWaitingForReset && remainingTime) {
+      return en.spinWin.resetIn.replace('{{time}}', remainingTime);
+    }
+
+    return en.spinWin.buttonNoSpins;
+  })();
+
+  const primaryButtonLabel = (() => {
+    if (isRewardedLoading || isGrantingExtraSpin) {
+      return en.spinWin.buttonLoadingAd;
+    }
+
+    if (shouldWatchAdForSpin) {
+      return en.spinWin.buttonWatchAd;
+    }
+
+    if (canSpin) {
+      return en.spinWin.remainingSpins.replace(
+        '{{count}}',
+        `${remainingSpins}`,
+      );
+    }
+
+    return en.spinWin.buttonNoSpins;
+  })();
 
   const spin = async () => {
     if (isActionBusy || !canSpin) {
@@ -188,12 +240,10 @@ const SpinWinScreen = ({ navigation }) => {
         <View style={styles.summaryCard}>
           <SvgIcon icon={SVG.wheel} height={hp(5.6)} width={hp(5.6)} />
           <Label style={styles.summaryTitle}>{en.spinWin.screenTitle}</Label>
-          <Label style={styles.summaryText}>
-            {en.spinWin.remainingSpins.replace(
-              '{{count}}',
-              `${remainingSpins}`,
-            )}
-          </Label>
+          <Label style={styles.summaryText}>{summarySubtitle}</Label>
+          {shouldWatchAdForSpin && isWaitingForReset ? (
+            <Label style={styles.summaryHint}>{en.spinWin.watchAdHint}</Label>
+          ) : null}
         </View>
 
         <View style={styles.wheelWrap}>
@@ -235,18 +285,7 @@ const SpinWinScreen = ({ navigation }) => {
             }
             style={styles.spinButton}
           >
-            <Label style={styles.spinButtonText}>
-              {isRewardedLoading || isGrantingExtraSpin
-                ? en.spinWin.buttonLoadingAd
-                : shouldWatchAdForSpin
-                ? en.spinWin.buttonWatchAd
-                : canSpin
-                ? en.spinWin.remainingSpins.replace(
-                    '{{count}}',
-                    `${remainingSpins}`,
-                  )
-                : en.spinWin.buttonNoSpins}
-            </Label>
+            <Label style={styles.spinButtonText}>{primaryButtonLabel}</Label>
           </LinearGradient>
         </ScalePressable>
       </ScrollView>
@@ -305,6 +344,14 @@ const styles = StyleSheet.create({
     color: COLORS.blue,
     fontSize: hp(2.8),
     fontFamily: FONT.semiBold,
+  },
+  summaryHint: {
+    marginTop: hp(0.6),
+    color: COLORS.white,
+    fontSize: hp(1.7),
+    fontFamily: FONT.medium,
+    textAlign: 'center',
+    paddingHorizontal: wp(6),
   },
   wheelWrap: {
     marginTop: hp(4.2),

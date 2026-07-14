@@ -36,13 +36,27 @@
     "tapToReveal": "Tap to Reveal!",
     "coinsSuffix": "Coins",
     "modalTitle": "Card Revealed",
-    "claimed":" Claimed",
+    "claimed": " Claimed",
     "modalMessage": "You won {{reward}} coins.",
-    "modalButton": "Continue"
+    "modalButton": "Continue",
+    "resetIn": "Resets in {{time}}",
+    "buttonWatchAd": "Watch Ad & Unlock Scratch",
+    "buttonLoadingAd": "Loading Ad...",
+    "watchAdHint": "Watch an ad to unlock 1 scratch card",
+    "adUnavailableTitle": "Ad Unavailable",
+    "adUnavailableMessage": "Ad is not available right now. Please try again in a moment.",
+    "rewardNotEarnedTitle": "Reward Not Earned",
+    "rewardNotEarnedMessage": "You need to watch the full ad to unlock a scratch card.",
+    "freeScratchAddedTitle": "Scratch Unlocked",
+    "freeScratchAddedMessage": "You unlocked 1 scratch card. Tap any available card!",
+    "addScratchFailedTitle": "Unable To Unlock",
+    "addScratchFailedMessage": "Free scratch could not be saved. Check your connection and try again."
   },
   "spinWin": {
     "screenTitle": "Spin & Win",
     "remainingSpins": "{{count}} spins remaining",
+    "resetIn": "Resets in {{time}}",
+    "watchAdHint": "Or watch an ad to unlock 1 free spin",
     "buttonNoSpins": "NO SPINS LEFT",
     "buttonSpin": "SPIN THE WHEEL!",
     "buttonLoadingAd": "Loading Ad...",
@@ -108,7 +122,9 @@
     "transactions": "Transactions",
     "footerTitle": "FF Diamonds v1.0.0",
     "footerSubtitle": "Made with ❤ for diamond earners",
-    "contactPopupMessage": "No email app found. Please contact:\ntechcheck385@gmail.com"
+    "contactPopupMessage": "No email app found. Please contact:\nsupport@lootsquest.com",
+    "shareTitle": "Share FF Diamonds",
+    "shareMessage": "Earn free diamonds every day with FF Diamonds Rewards! Download now:"
   },
   "transactionHistory": {
     "screenTitle": "Transaction History",

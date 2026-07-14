@@ -5,13 +5,12 @@ import { en } from '../../languages';
 import { hp, wp } from '../../enums/StyleGuide';
 import { AppHeader } from '../../components';
 import { spacing } from '../../constants/theme';
-import { useInterstitialAd, useTransactionHistory } from '../../hooks';
+import { useTransactionHistory } from '../../hooks';
 import TransactionCard from './components/TransactionCard';
 import EmptyState from './components/EmptyState';
 import LoadingState from './components/LoadingState';
 
 const TransactionHistoryScreen = ({ navigation }) => {
-  useInterstitialAd();
   const { transactions, loading } = useTransactionHistory();
 
   const renderItem = useCallback(

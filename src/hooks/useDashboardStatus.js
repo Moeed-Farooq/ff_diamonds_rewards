@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { en } from '../languages';
 import { subscribeToCurrentUserData } from '../services/firebaseServices';
+import { canSpinWheel, getRemainingSpins, canPlayScratch } from '../helpers';
 
 const MAX_SCRATCH = 6;
 const MAX_SPINS = 5;
@@ -34,10 +35,13 @@ const getScratchStatus = scratchWin => {
     return formatRemainingStatus(MAX_SCRATCH);
   }
 
-  if (scratchWin.lastCompletedAt) {
-    return isToday(scratchWin.lastCompletedAt)
-      ? formatRemainingStatus(0)
-      : formatRemainingStatus(MAX_SCRATCH);
+  if (scratchWin.lastCompletedAt && canPlayScratch(scratchWin.lastCompletedAt)) {
+    return formatRemainingStatus(MAX_SCRATCH);
+  }
+
+  if (scratchWin.lastCompletedAt && !canPlayScratch(scratchWin.lastCompletedAt)) {
+    const extras = Math.max(0, Number(scratchWin.extraScratches) || 0);
+    return formatRemainingStatus(extras);
   }
 
   const left = Math.max(
@@ -53,11 +57,11 @@ const getSpinStatus = spinWheel => {
     return formatRemainingStatus(MAX_SPINS);
   }
 
-  if (spinWheel.lastResetAt && !isToday(spinWheel.lastResetAt)) {
+  if (spinWheel.lastResetAt && canSpinWheel(spinWheel.lastResetAt)) {
     return formatRemainingStatus(MAX_SPINS);
   }
 
-  const dailyLeft = Math.max(0, MAX_SPINS - (spinWheel.spinsUsed || 0));
+  const dailyLeft = getRemainingSpins(spinWheel.spinsUsed || 0);
   const extraSpins = Math.max(0, Number(spinWheel.extraSpins) || 0);
   const left = dailyLeft + extraSpins;
 

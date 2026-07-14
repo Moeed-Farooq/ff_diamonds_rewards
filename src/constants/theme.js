@@ -78,6 +78,7 @@ export const gradients = {
   dashboardScratch: ['#B75DE5', '#931DBD'],
   dashboardSpin: ['#3AA9F8', '#2D7DD7'],
   dashboardWatch: ['#57C25D', '#3A9B4A'],
+  dashboardBlockPuzzle: ['#2BC4B8', '#1A9B8F'],
   redemptionCard: ['#1E2857', '#1A2A5B'],
   scratchDisabled: ['#5F5E5E', '#464040'],
   scratchClaimed: ['#2B4588', '#27407B'],

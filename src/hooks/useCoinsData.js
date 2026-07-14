@@ -15,6 +15,7 @@ const useCoinsData = () => {
     scratchWin: profile?.scratchWin ?? {
       claimedCards: [],
       lastCompletedAt: null,
+      extraScratches: 0,
     },
 
     spinWheel: profile?.spinWheel ?? {

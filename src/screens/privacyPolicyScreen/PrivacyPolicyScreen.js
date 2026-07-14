@@ -8,11 +8,8 @@ import { palette, radius, shadows, spacing } from '../../constants/theme';
 import { COLORS, FONT, HEX_OPACITY, hp, wp } from '../../enums/StyleGuide';
 import { AppHeader } from '../../components';
 import PolicySectionBlock from '../../components/PolicySectionBlock';
-import { useInterstitialAd } from '../../hooks';
 
 const PrivacyPolicyScreen = ({ navigation }) => {
-  useInterstitialAd();
-
   return (
     <AppScreen>
       <AppHeader
