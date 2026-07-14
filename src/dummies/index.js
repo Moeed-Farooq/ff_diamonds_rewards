@@ -79,7 +79,7 @@ export const dashboardCards = [
     title: en.rewardData.dashboardBlockPuzzleTitle,
     subtitle: en.rewardData.dashboardBlockPuzzleSubtitle,
     icon: SVG.play,
-    colors: gradients.dashboardWatch,
+    colors: gradients.dashboardBlockPuzzle,
     route: SCREEN.BLOCK_PUZZLE_SCREEN,
   },
 ];
@@ -173,14 +173,14 @@ export const profileActions = [
     icon: 'shield-check',
     color: palette.profileActionPrivacy,
   },
-  {
-    id: 'removeAds',
-    title: en.rewardData.removeAds,
-    subtitle: en.rewardData.removeAdsSubtitle,
-    icon: 'block-helper',
-    color: palette.profileActionRemoveAds,
-    chip: en.rewardData.removeAdsPrice,
-  },
+  // {
+  //   id: 'removeAds',
+  //   title: en.rewardData.removeAds,
+  //   subtitle: en.rewardData.removeAdsSubtitle,
+  //   icon: 'block-helper',
+  //   color: palette.profileActionRemoveAds,
+  //   chip: en.rewardData.removeAdsPrice,
+  // },
   {
     id: 'contact',
     title: en.rewardData.contactUs,

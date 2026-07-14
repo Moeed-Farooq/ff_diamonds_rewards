@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, View } from 'react-native';
+import { Animated, ScrollView, Share, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen } from '../../components/ui';
@@ -13,6 +13,9 @@ import { AppHeader } from '../../components';
 import ProfileStatItem from '../../components/ProfileStatItem';
 import ProfileSettingsItem from '../../components/ProfileSettingsItem';
 import { useUserProfile, useCoinsData } from '../../hooks';
+
+const PLAY_STORE_URL =
+  'https://play.google.com/store/apps/details?id=com.perkmedia.FFdiamonds';
 
 const ProfileScreen = ({ navigation }) => {
   const [isContactVisible, setIsContactVisible] = useState(false);
@@ -60,6 +63,18 @@ const ProfileScreen = ({ navigation }) => {
     });
   };
 
+  const onShareApp = async () => {
+    try {
+      await Share.share({
+        title: en.profile.shareTitle,
+        message: `${en.profile.shareMessage}\n${PLAY_STORE_URL}`,
+        url: PLAY_STORE_URL,
+      });
+    } catch (error) {
+      console.log('Share app failed:', error?.message || error);
+    }
+  };
+
   const onActionPress = id => {
     if (id === 'history') {
       navigation.navigate(SCREEN.TRANSACTION_HISTORY_SCREEN);
@@ -73,6 +88,11 @@ const ProfileScreen = ({ navigation }) => {
 
     if (id === 'contact') {
       showContactPopup();
+      return;
+    }
+
+    if (id === 'share') {
+      onShareApp();
     }
   };
 

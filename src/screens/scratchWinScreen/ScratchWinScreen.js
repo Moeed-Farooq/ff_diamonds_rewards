@@ -9,11 +9,14 @@ import { COLORS, FONT, hp, wp } from '../../enums/StyleGuide';
 import { en } from '../../languages';
 import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
-import { AppHeader } from '../../components';
+import { AppHeader, RewardStatusModal } from '../../components';
 import { scratchRewards } from '../../dummies';
-import { useCoinsData } from '../../hooks';
+import { useCoinsData, useRewardedAd } from '../../hooks';
 import { canPlayScratch, getScratchRemainingTime } from '../../helpers';
-import { claimScratchReward } from '../../services/firebaseServices';
+import {
+  claimScratchReward,
+  grantExtraScratchFromRewardedAd,
+} from '../../services/firebaseServices';
 
 const seedCards = () => {
   return scratchRewards
@@ -28,14 +31,32 @@ const seedCards = () => {
 const ScratchWinScreen = ({ navigation }) => {
   const [cards] = useState(seedCards);
   const [loading, setLoading] = useState(false);
+  const [isGrantingExtraScratch, setIsGrantingExtraScratch] = useState(false);
   const [remainingTime, setRemainingTime] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedReward, setSelectedReward] = useState(null);
-  const { scratchWin } = useCoinsData();
-  const canPlay = canPlayScratch(scratchWin.lastCompletedAt);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusModalTitle, setStatusModalTitle] = useState('');
+  const [statusModalMessage, setStatusModalMessage] = useState('');
+  const { scratchWin, refreshProfile } = useCoinsData();
+  const { showRewardedAd, isLoading: isRewardedLoading } = useRewardedAd();
+
+  const needsDailyReset =
+    !!scratchWin.lastCompletedAt && canPlayScratch(scratchWin.lastCompletedAt);
+  const dailyAvailable =
+    !scratchWin.lastCompletedAt || needsDailyReset;
+  const isWaitingForReset =
+    !!scratchWin.lastCompletedAt && !canPlayScratch(scratchWin.lastCompletedAt);
+  const extraScratches = isWaitingForReset
+    ? Math.max(0, Number(scratchWin.extraScratches) || 0)
+    : 0;
+  const claimedCards = needsDailyReset ? [] : scratchWin.claimedCards || [];
+  const canPlay = dailyAvailable || extraScratches > 0;
+  const isActionBusy = loading || isGrantingExtraScratch || isRewardedLoading;
+  const showWatchAdButton = isWaitingForReset && extraScratches === 0;
 
   useEffect(() => {
-    if (canPlay) {
+    if (!isWaitingForReset) {
       setRemainingTime('');
       return;
     }
@@ -49,21 +70,42 @@ const ScratchWinScreen = ({ navigation }) => {
     const interval = setInterval(update, 1000);
 
     return () => clearInterval(interval);
-  }, [scratchWin.lastCompletedAt, canPlay]);
+  }, [scratchWin.lastCompletedAt, isWaitingForReset]);
 
   const remainingCards = useMemo(() => {
-    if (!canPlay) {
-      return 0;
+    if (isWaitingForReset) {
+      return extraScratches;
     }
 
-    return 6 - (scratchWin.claimedCards?.length || 0);
-  }, [scratchWin, canPlay]);
+    return 6 - claimedCards.length;
+  }, [claimedCards, isWaitingForReset, extraScratches]);
+
+  const openStatusModal = (title, message) => {
+    setStatusModalTitle(title);
+    setStatusModalMessage(message);
+    setShowStatusModal(true);
+  };
+
+  const summarySubtitle = (() => {
+    if (canPlay) {
+      return en.scratchWin.remainingCards.replace(
+        '{{count}}',
+        `${remainingCards}`,
+      );
+    }
+
+    if (isWaitingForReset && remainingTime) {
+      return en.scratchWin.resetIn.replace('{{time}}', remainingTime);
+    }
+
+    return remainingTime || en.scratchWin.claimed;
+  })();
 
   const revealCard = async card => {
     if (!canPlay || loading) {
       return;
     }
-    if (scratchWin.claimedCards?.includes(card.id)) {
+    if (claimedCards.includes(card.id)) {
       return;
     }
     try {
@@ -75,6 +117,51 @@ const ScratchWinScreen = ({ navigation }) => {
       console.log(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const grantAdBasedExtraScratch = async () => {
+    if (isActionBusy || !showWatchAdButton) {
+      return;
+    }
+
+    setIsGrantingExtraScratch(true);
+
+    try {
+      const adResult = await showRewardedAd();
+      const didShowAd = Boolean(adResult?.shown);
+      const rewardEarned = Boolean(adResult?.rewardEarned);
+
+      if (!didShowAd) {
+        openStatusModal(
+          en.scratchWin.adUnavailableTitle,
+          en.scratchWin.adUnavailableMessage,
+        );
+        return;
+      }
+
+      if (!rewardEarned) {
+        openStatusModal(
+          en.scratchWin.rewardNotEarnedTitle,
+          en.scratchWin.rewardNotEarnedMessage,
+        );
+        return;
+      }
+
+      await grantExtraScratchFromRewardedAd();
+      await refreshProfile();
+
+      openStatusModal(
+        en.scratchWin.freeScratchAddedTitle,
+        en.scratchWin.freeScratchAddedMessage,
+      );
+    } catch (error) {
+      openStatusModal(
+        en.scratchWin.addScratchFailedTitle,
+        error?.message || en.scratchWin.addScratchFailedMessage,
+      );
+    } finally {
+      setIsGrantingExtraScratch(false);
     }
   };
 
@@ -98,67 +185,84 @@ const ScratchWinScreen = ({ navigation }) => {
             color={palette.purple}
           />
           <Label style={styles.summaryTitle}>{en.scratchWin.screenTitle}</Label>
-          <Label style={styles.summaryText}>
-            {canPlay
-              ? en.scratchWin.remainingCards.replace(
-                  '{{count}}',
-                  `${remainingCards}`,
-                )
-              : remainingTime}
-          </Label>
+          <Label style={styles.summaryText}>{summarySubtitle}</Label>
+          {showWatchAdButton ? (
+            <Label style={styles.summaryHint}>{en.scratchWin.watchAdHint}</Label>
+          ) : null}
         </View>
 
         <View style={styles.grid}>
-          {cards.map(card => (
-            <ScalePressable
-              key={card.id}
-              style={styles.scratchTileWrap}
-              onPress={() => revealCard(card)}
-              disabled={
-                !canPlay ||
-                loading ||
-                scratchWin.claimedCards?.includes(card.id)
-              }
-            >
-              <LinearGradient
-                colors={
-                  !canPlay
-                    ? gradients.scratchDisabled
-                    : scratchWin.claimedCards?.includes(card.id)
-                    ? gradients.scratchClaimed
-                    : gradients.scratchAvailable
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.scratchTile}
+          {cards.map(card => {
+            const isClaimed = claimedCards.includes(card.id);
+            const isCardLocked = !canPlay || isClaimed;
+
+            return (
+              <ScalePressable
+                key={card.id}
+                style={styles.scratchTileWrap}
+                onPress={() => revealCard(card)}
+                disabled={isCardLocked || loading}
               >
-                {scratchWin.claimedCards?.includes(card.id) ? (
-                  <>
-                    <SvgIcon
-                      icon={SVG.coins}
-                      height={hp(3.5)}
-                      width={hp(3.5)}
-                    />
-                    <Label style={styles.revealedTitle}>
-                      {card.reward} {en.scratchWin.coinsSuffix}
-                    </Label>
-                  </>
-                ) : (
-                  <>
-                    <MaterialCommunityIcons
-                      name="gesture-tap-button"
-                      size={hp(4.9)}
-                      color={COLORS.white}
-                    />
-                    <Label style={styles.tapLabel}>
-                     {canPlay ? en.scratchWin.tapToReveal : en.scratchWin.claimed}
-                    </Label>
-                  </>
-                )}
-              </LinearGradient>
-            </ScalePressable>
-          ))}
+                <LinearGradient
+                  colors={
+                    isClaimed
+                      ? gradients.scratchClaimed
+                      : canPlay
+                      ? gradients.scratchAvailable
+                      : gradients.scratchDisabled
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.scratchTile}
+                >
+                  {isClaimed ? (
+                    <>
+                      <SvgIcon
+                        icon={SVG.coins}
+                        height={hp(3.5)}
+                        width={hp(3.5)}
+                      />
+                      <Label style={styles.revealedTitle}>
+                        {card.reward} {en.scratchWin.coinsSuffix}
+                      </Label>
+                    </>
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons
+                        name="gesture-tap-button"
+                        size={hp(4.9)}
+                        color={COLORS.white}
+                      />
+                      <Label style={styles.tapLabel}>
+                        {canPlay
+                          ? en.scratchWin.tapToReveal
+                          : en.scratchWin.claimed}
+                      </Label>
+                    </>
+                  )}
+                </LinearGradient>
+              </ScalePressable>
+            );
+          })}
         </View>
+
+        {showWatchAdButton ? (
+          <ScalePressable
+            onPress={grantAdBasedExtraScratch}
+            disabled={isActionBusy}
+          >
+            <LinearGradient
+              colors={gradients.rewardedAction}
+              style={styles.watchAdButton}
+            >
+              <Label style={styles.watchAdButtonText}>
+                {isRewardedLoading || isGrantingExtraScratch
+                  ? en.scratchWin.buttonLoadingAd
+                  : en.scratchWin.buttonWatchAd}
+              </Label>
+            </LinearGradient>
+          </ScalePressable>
+        ) : null}
       </ScrollView>
 
       <Modal transparent animationType="fade" visible={showModal}>
@@ -182,6 +286,14 @@ const ScratchWinScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      <RewardStatusModal
+        visible={showStatusModal}
+        title={statusModalTitle}
+        message={statusModalMessage}
+        buttonLabel={en.scratchWin.modalButton}
+        onClose={() => setShowStatusModal(false)}
+      />
     </AppScreen>
   );
 };
@@ -210,9 +322,17 @@ const styles = StyleSheet.create({
     color: palette.purple,
     fontSize: hp(2.5),
     fontFamily: FONT.bold,
-    backgroundColor:COLORS.yellow,
-    paddingHorizontal:hp(1),
-    borderRadius:hp(1),
+    backgroundColor: COLORS.yellow,
+    paddingHorizontal: hp(1),
+    borderRadius: hp(1),
+  },
+  summaryHint: {
+    marginTop: hp(0.8),
+    color: COLORS.white,
+    fontSize: hp(1.7),
+    fontFamily: FONT.medium,
+    textAlign: 'center',
+    paddingHorizontal: wp(6),
   },
   grid: {
     marginTop: hp(2.4),
@@ -240,6 +360,18 @@ const styles = StyleSheet.create({
   revealedTitle: {
     color: COLORS.green,
     fontSize: hp(2.6),
+    fontFamily: FONT.semiBold,
+  },
+  watchAdButton: {
+    marginTop: hp(2.4),
+    borderRadius: radius.pill,
+    paddingVertical: hp(1.2),
+    alignItems: 'center',
+    ...shadows.card,
+  },
+  watchAdButtonText: {
+    color: COLORS.white,
+    fontSize: hp(2.1),
     fontFamily: FONT.semiBold,
   },
   modalBackdrop: {

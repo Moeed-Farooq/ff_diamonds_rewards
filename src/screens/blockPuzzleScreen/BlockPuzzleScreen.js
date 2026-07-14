@@ -26,10 +26,8 @@ import { BLOCK_SHAPES, SHAPE_COLORS } from '../../dummies';
 import { AppHeader } from '../../components';
 import { AppScreen } from '../../components/ui';
 import { addCoins } from '../../services/firebaseServices';
-import { useInterstitialAd } from '../../hooks';
 
 const BlockPuzzleScreen = () => {
-   useInterstitialAd();
   const BOARD_SIZE = 8;
   const CELL_SIZE = wp(8.5) + 4;
   const navigation = useNavigation();
@@ -112,7 +110,7 @@ const BlockPuzzleScreen = () => {
       }
     }
     const gameOver = async () => {
-      const coins = Math.floor(finalScore / 10) * 5;
+      const coins = finalScore * 5;
 
       if (coins > 0) {
         await addCoins(coins, {
@@ -154,7 +152,9 @@ const BlockPuzzleScreen = () => {
     }
 
     let nextBoard = currentBoard;
-    if (rowsToClear.length > 0 || colsToClear.length > 0) {
+    const clearedLines = rowsToClear.length + colsToClear.length;
+
+    if (clearedLines > 0) {
       nextBoard = currentBoard.map((row, r) =>
         row.map((cell, c) => {
           if (rowsToClear.includes(r) || colsToClear.includes(c)) {
@@ -163,12 +163,9 @@ const BlockPuzzleScreen = () => {
           return cell;
         }),
       );
-
-      const clearedLines = rowsToClear.length + colsToClear.length;
-      setScore(prev => prev + clearedLines * 10);
     }
 
-    return nextBoard;
+    return { nextBoard, clearedLines };
   };
 
   const handleGestureEnd = (index, absoluteX, absoluteY, touchX, touchY) => {
@@ -215,10 +212,12 @@ const BlockPuzzleScreen = () => {
         });
       });
 
-      const boardAfterClear = checkAndClearLines(newBoard);
+      const { nextBoard: boardAfterClear, clearedLines } =
+        checkAndClearLines(newBoard);
       setPlacedBoard(boardAfterClear);
 
-      const newScore = score + 10;
+      // +1 for each successful placement, +1 for each cleared row/column
+      const newScore = score + 1 + clearedLines;
       setScore(newScore);
 
       const updatedShapes = [...currentShapes];

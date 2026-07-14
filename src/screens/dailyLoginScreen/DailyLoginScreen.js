@@ -11,7 +11,7 @@ import { en } from '../../languages';
 import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
 import { AppHeader } from '../../components';
-import { useCoinsData, useInterstitialAd } from '../../hooks';
+import { useCoinsData } from '../../hooks';
 import {
   canClaimDailyReward,
   getRewardDay,
@@ -20,8 +20,6 @@ import {
 import { claimDailyLoginReward } from '../../services/firebaseServices';
 
 const DailyLoginScreen = ({ navigation }) => {
-  useInterstitialAd();
-
   const [claimLoading, setClaimLoading] = useState(false);
   const [remainingTime, setRemainingTime] = useState('');
   const [showModal, setShowModal] = useState(false);
