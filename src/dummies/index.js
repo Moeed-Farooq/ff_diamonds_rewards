@@ -1,5 +1,7 @@
 import { SVG } from '../assets';
+import { gradients, palette } from '../constants/theme';
 import { SCREEN } from '../enums';
+import { COLORS } from '../enums/StyleGuide';
 import { en } from '../languages';
 
 
@@ -24,13 +26,17 @@ export const bottomIcons = {
 export const stats = [
   {
     icon: SVG.coins,
-    color: '#DAE36A',
+    color: palette.statTotalEarned,
     label: en.profile.totalEarned,
   },
-  { icon: SVG.fire, color: '#FEAA2F', label: en.profile.dailyStreak },
+  {
+    icon: SVG.fire,
+    color: palette.statDailyStreak,
+    label: en.profile.dailyStreak,
+  },
   {
     icon: SVG.document,
-    color: '#3DA2FF',
+    color: palette.statTransactions,
     label: en.profile.transactions,
   },
 ];
@@ -41,7 +47,7 @@ export const dashboardCards = [
     title: en.rewardData.dashboardDailyTitle,
     subtitle: en.rewardData.dashboardDailySubtitle,
     icon: SVG.calender,
-    colors: ['#FF6A3C', '#D8653A'],
+    colors: gradients.dashboardDaily,
     route: SCREEN.DAILY_LOGIN_SCREEN,
   },
   {
@@ -49,7 +55,7 @@ export const dashboardCards = [
     title: en.rewardData.dashboardScratchTitle,
     subtitle: en.rewardData.dashboardScratchSubtitle,
     icon: SVG.scratch,
-    colors: ['#B75DE5', '#931DBD'],
+    colors: gradients.dashboardScratch,
     route: SCREEN.SCRATCH_WIN_SCREEN,
   },
   {
@@ -57,7 +63,7 @@ export const dashboardCards = [
     title: en.rewardData.dashboardSpinTitle,
     subtitle: en.rewardData.dashboardSpinSubtitle,
     icon: SVG.wheelWhite,
-    colors: ['#3AA9F8', '#2D7DD7'],
+    colors: gradients.dashboardSpin,
     route: SCREEN.SPIN_WIN_SCREEN,
   },
   {
@@ -65,7 +71,7 @@ export const dashboardCards = [
     title: en.rewardData.dashboardWatchTitle,
     subtitle: en.rewardData.dashboardWatchSubtitle,
     icon: SVG.play,
-    colors: ['#57C25D', '#3A9B4A'],
+    colors: gradients.dashboardWatch,
     route: SCREEN.WATCH_EARN_SCREEN,
   },
   {
@@ -73,7 +79,7 @@ export const dashboardCards = [
     title: en.rewardData.dashboardBlockPuzzleTitle,
     subtitle: en.rewardData.dashboardBlockPuzzleSubtitle,
     icon: SVG.play,
-    colors: ['#57C25D', '#3A9B4A'],
+    colors: gradients.dashboardWatch,
     route: SCREEN.BLOCK_PUZZLE_SCREEN,
   },
 ];
@@ -98,6 +104,14 @@ export const weeklyRewards = [5, 12, 28, 45, 72, 85, 100];
 export const scratchRewards = [2, 4, 6, 8, 10, 12];
 
 export const wheelRewards = [1, 5, 10, 20, 30];
+
+export const wheelSegmentColors = [
+  COLORS.red,
+  palette.blue,
+  palette.wheelSegmentGreen,
+  palette.wheelSegmentOrange,
+  palette.wheelSegmentPurple,
+];
 
 export const redemptionItems = [
   {
@@ -150,21 +164,21 @@ export const profileActions = [
     title: en.rewardData.transactionHistory,
     subtitle: en.rewardData.viewCoinTransactionHistory,
     icon: 'history',
-    color: '#2D9CF0',
+    color: palette.profileActionHistory,
   },
   {
     id: 'privacy',
     title: en.rewardData.privacyPolicy,
     subtitle: en.rewardData.readPrivacyPolicy,
     icon: 'shield-check',
-    color: '#4FCA6C',
+    color: palette.profileActionPrivacy,
   },
   {
     id: 'removeAds',
     title: en.rewardData.removeAds,
     subtitle: en.rewardData.removeAdsSubtitle,
     icon: 'block-helper',
-    color: '#FF5B4A',
+    color: palette.profileActionRemoveAds,
     chip: en.rewardData.removeAdsPrice,
   },
   {
@@ -172,14 +186,14 @@ export const profileActions = [
     title: en.rewardData.contactUs,
     subtitle: en.rewardData.contactUsSubtitle,
     icon: 'email-outline',
-    color: '#F0A332',
+    color: palette.profileActionContact,
   },
   {
     id: 'share',
     title: en.rewardData.shareApp,
     subtitle: en.rewardData.shareAppSubtitle,
     icon: 'share-variant-outline',
-    color: '#9A42C9',
+    color: palette.profileActionShare,
   },
 ];
 
@@ -220,9 +234,9 @@ export const BLOCK_SHAPES = [
 ];
 
 export const SHAPE_COLORS = [
-  '#c9b8bc',
-  '#FFBB00',
-  '#dbedff',
-  '#43bdf5',
-  '#ff9557',
+  palette.shapeColorOne,
+  palette.shapeColorTwo,
+  palette.shapeColorThree,
+  palette.shapeColorFour,
+  palette.shapeColorFive,
 ];

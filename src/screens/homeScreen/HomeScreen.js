@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View, Image } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
@@ -10,6 +10,7 @@ import { en } from '../../languages';
 import { AppHeader } from '../../components';
 import SvgIcon from '../../common/SvgIcon';
 import { useUserProfile, useDashboardStatus } from '../../hooks';
+import BannerAdView from '../../components/BannerAdView';
 
 const HomeScreen = ({ navigation }) => {
   const { username } = useUserProfile();
@@ -23,7 +24,10 @@ const HomeScreen = ({ navigation }) => {
       >
         <AppHeader
           variant="hero"
-          title={`Hello, ${username || 'Player'} 👋`}
+          title={en.home.greeting.replace(
+            '{{username}}',
+            username || en.home.defaultPlayer,
+          )}
           subtitle={en.home.readyToEarn}
           showCoinPill
         />
@@ -67,6 +71,8 @@ const HomeScreen = ({ navigation }) => {
           })}
         </View>
 
+        <BannerAdView style={styles.bannerWrap} />
+
         <View style={styles.progressCard}>
           <Label style={styles.progressTitle}>{en.home.todayProgress}</Label>
           {todayProgressRows.map(row => {
@@ -79,7 +85,7 @@ const HomeScreen = ({ navigation }) => {
                 {value ? (
                   <Label style={styles.progressValue}>{value}</Label>
                 ) : (
-                  <Label style={styles.claimedText}>Claimed</Label>
+                  <Label style={styles.claimedText}>{en.home.claimed}</Label>
                 )}
               </View>
             );
@@ -129,7 +135,7 @@ const styles = StyleSheet.create({
     width: wp(10),
     height: wp(10),
     borderRadius: radius.md,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: palette.whiteTint18,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -156,12 +162,15 @@ const styles = StyleSheet.create({
     color: palette.textPrimary,
   },
   progressCard: {
-    marginTop: hp(8),
+    marginTop: hp(4),
     borderRadius: radius.lg,
     paddingHorizontal: wp(4.8),
     paddingVertical: hp(1.7),
     backgroundColor: palette.pageBottom,
     ...shadows.card,
+  },
+  bannerWrap: {
+    marginTop: hp(4),
   },
   progressTitle: {
     color: palette.textPrimary,

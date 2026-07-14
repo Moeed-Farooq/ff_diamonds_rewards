@@ -2,7 +2,8 @@
   "app": {
     "ffDiamonds": "FF Diamonds",
     "earnDiamondsDaily": "Earn Diamonds Daily",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "coins":"Coins"
   },
   "tabs": {
     "home": "Home",
@@ -11,8 +12,10 @@
   },
   "home": {
     "greeting": "Hello, {{username}} 👋",
+    "defaultPlayer": "Player",
     "earnDiamonds": "Earn Diamonds",
     "todayProgress": "Today's Progress",
+    "claimed": "Claimed",
     "readyToEarn":" Ready to earn some diamonds?"
   },
   "dailyLogin": {
@@ -42,9 +45,21 @@
     "remainingSpins": "{{count}} spins remaining",
     "buttonNoSpins": "NO SPINS LEFT",
     "buttonSpin": "SPIN THE WHEEL!",
+    "buttonLoadingAd": "Loading Ad...",
+    "buttonWatchAd": "Watch Ad & Get Free Spin",
     "modalTitle": "You Won 🎉",
     "modalReward": "{{reward}} coins",
-    "modalButton": "Collect"
+    "modalButton": "Collect",
+    "spinFailedTitle": "Spin Failed",
+    "spinFailedMessage": "Unable to save spin reward. Please try again.",
+    "adUnavailableTitle": "Ad Unavailable",
+    "adUnavailableMessage": "Ad is not available right now. Please try again in a moment.",
+    "rewardNotEarnedTitle": "Reward Not Earned",
+    "rewardNotEarnedMessage": "You need to watch the full ad to unlock a free spin.",
+    "freeSpinAddedTitle": "Free Spin Added",
+    "freeSpinAddedMessage": "You earned 1 extra spin.",
+    "addSpinFailedTitle": "Unable To Add Spin",
+    "addSpinFailedMessage": "Free spin could not be saved. Check your connection and try again."
   },
   "watchEarn": {
     "screenTitle": "Watch & Earn",
@@ -54,7 +69,25 @@
     "button": "Watch ad to earn coins",
     "modalTitle": "Ad Completed",
     "modalMessage": "You earned 3 coins from this reward ad.",
-    "modalButton": "Done"
+    "modalButton": "Done",
+    "adUnavailableTitle": "Ad Unavailable",
+    "adUnavailableMessage": "Ad is not available right now. Please try again in a moment.",
+    "rewardNotEarnedTitle": "Reward Not Earned",
+    "rewardNotEarnedMessage": "You need to watch the full ad to earn coins.",
+    "rewardPendingTitle": "Reward Pending",
+    "rewardPendingMessage": "Ad reward was earned but coins could not be saved. Check your connection and try again.",
+    "earnedCoinsMessage": "You earned {{reward}} coins from this reward ad."
+  },
+  "welcome": {
+    "title": "Welcome 👋",
+    "subtitle": "Complete your profile to continue.",
+    "usernamePlaceholder": "Username",
+    "gameIdPlaceholder": "Game ID",
+    "continue": "Continue",
+    "loading": "Please wait...",
+    "usernameRequired": "Username required",
+    "gameIdRequired": "Game ID required",
+    "errorTitle": "Error"
   },
   "withdrawal": {
     "headerTitle": "Redeem Items",
@@ -80,7 +113,7 @@
   "transactionHistory": {
     "screenTitle": "Transaction History",
     "emptyTitle": "No Transactions Yet",
-    "emptySubtitle": "Start earning coins to see your transaction history"
+    "emptySubtitle": "Your earned coin history will appear here."
   },
   "blockPuzzle": {
   "block": "BLOCK",
@@ -141,6 +174,7 @@
     "dashboardBlockPuzzleTitle": "Play &\nEarn",
     "dashboardBlockPuzzleSubtitle": "Place puzzles to earn\ndiamonds",
     "statusAvailable": "Available",
+    "statusRemaining": "{{count}} Left",
     "status6Left": "6 left",
     "status5Left": "5 left",
     "todayDailyBonus": "Daily Bonus",

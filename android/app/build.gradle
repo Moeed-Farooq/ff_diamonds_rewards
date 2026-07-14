@@ -117,5 +117,13 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// Configure Kotlin compiler to skip metadata version checks for Google Mobile Ads
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        freeCompilerArgs += ["-Xskip-metadata-version-check"]
+    }
+}
+
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 apply plugin: 'com.google.gms.google-services'

@@ -4,10 +4,10 @@ import {
   TouchableOpacity,
   View,
   Modal,
-  StatusBar,
 } from 'react-native';
 import { COLORS, FONT, HEX_OPACITY, hp, wp } from '../../enums/StyleGuide';
 import Label from '../../common';
+import { palette } from '../../constants/theme';
 import { en } from '../../languages';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -26,8 +26,10 @@ import { BLOCK_SHAPES, SHAPE_COLORS } from '../../dummies';
 import { AppHeader } from '../../components';
 import { AppScreen } from '../../components/ui';
 import { addCoins } from '../../services/firebaseServices';
+import { useInterstitialAd } from '../../hooks';
 
 const BlockPuzzleScreen = () => {
+   useInterstitialAd();
   const BOARD_SIZE = 8;
   const CELL_SIZE = wp(8.5) + 4;
   const navigation = useNavigation();
@@ -113,7 +115,13 @@ const BlockPuzzleScreen = () => {
       const coins = Math.floor(finalScore / 10) * 5;
 
       if (coins > 0) {
-        await addCoins(coins);
+        await addCoins(coins, {
+          type: 'mini_game',
+          title: `Block Puzzle Reward - ${coins} coins`,
+          screen: 'BlockPuzzleScreen',
+          game: 'Block Puzzle',
+          rewardSource: 'Block Puzzle Game',
+        });
       }
 
       setIsGameOver(true);
@@ -407,7 +415,7 @@ const styles = StyleSheet.create({
   board: {
     alignSelf: 'center',
     marginTop: hp(3),
-    backgroundColor: '#1E122B',
+    backgroundColor: palette.blockPuzzleBoardBg,
     padding: wp(1.5),
     borderRadius: wp(4),
   },
@@ -419,7 +427,7 @@ const styles = StyleSheet.create({
     height: wp(8.5),
     margin: wp(0.6),
     borderRadius: wp(1.5),
-    backgroundColor: '#322247',
+    backgroundColor: palette.blockPuzzleCellBg,
   },
   bottomShapes: {
     marginTop: hp(4),
@@ -496,12 +504,12 @@ const styles = StyleSheet.create({
   },
   popupContainer: {
     width: wp(80),
-    backgroundColor: '#332540',
+    backgroundColor: palette.blockPuzzlePopupBg,
     borderRadius: 24,
     padding: wp(6),
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#574368',
+    borderColor: palette.blockPuzzlePopupBorder,
   },
   popupTitle: {
     color: COLORS.red,
@@ -517,7 +525,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   popupScoreBox: {
-    backgroundColor: '#261A30',
+    backgroundColor: palette.blockPuzzleScoreBg,
     width: '100%',
     borderRadius: 16,
     paddingVertical: hp(2),

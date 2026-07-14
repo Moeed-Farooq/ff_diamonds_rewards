@@ -1,17 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Modal, PlatformColor, ScrollView, StyleSheet, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
-import { palette, radius, shadows, spacing } from '../../constants/theme';
+import { gradients, palette, radius, shadows, spacing } from '../../constants/theme';
 import { COLORS, FONT, HEX_OPACITY, hp, wp } from '../../enums/StyleGuide';
 import { en } from '../../languages';
-import { AppHeader } from '../../components';
+import { AppHeader, RewardStatusModal } from '../../components';
+import { useCoinsData, useRewardedAd } from '../../hooks';
+import { addCoins } from '../../services/firebaseServices';
+
+const WATCH_REWARD_COINS = 20;
 
 const WatchEarnScreen = ({ navigation }) => {
   const pulse = useRef(new Animated.Value(1)).current;
   const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState(en.watchEarn.modalTitle);
+  const [modalMessage, setModalMessage] = useState(en.watchEarn.modalMessage);
+  const { refreshProfile } = useCoinsData();
+  const { showRewardedAd, isLoading: isRewardedLoading } = useRewardedAd();
 
   useEffect(() => {
     Animated.loop(
@@ -29,6 +37,61 @@ const WatchEarnScreen = ({ navigation }) => {
       ]),
     ).start();
   }, [pulse]);
+
+  const openResultModal = (title, message) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setShowModal(true);
+  };
+
+  const onWatchAdPress = async () => {
+    if (isRewardedLoading) {
+      return;
+    }
+
+    const adResult = await showRewardedAd();
+
+    if (!adResult.shown) {
+      openResultModal(
+        en.watchEarn.adUnavailableTitle,
+        en.watchEarn.adUnavailableMessage,
+      );
+      return;
+    }
+
+    if (!adResult.rewardEarned) {
+      openResultModal(
+        en.watchEarn.rewardNotEarnedTitle,
+        en.watchEarn.rewardNotEarnedMessage,
+      );
+      return;
+    }
+
+    try {
+      await addCoins(WATCH_REWARD_COINS, {
+        type: 'watch',
+        title: `Watch & Earn - ${WATCH_REWARD_COINS} coins`,
+        screen: 'WatchEarnScreen',
+        game: 'Watch & Earn',
+        rewardSource: 'Rewarded Ad',
+      });
+      await refreshProfile();
+
+      openResultModal(
+        en.watchEarn.modalTitle,
+        en.watchEarn.earnedCoinsMessage.replace(
+          '{{reward}}',
+          `${WATCH_REWARD_COINS}`,
+        ),
+      );
+    } catch (error) {
+      console.log('Failed to save rewarded coins:', error?.message || error);
+      openResultModal(
+        en.watchEarn.rewardPendingTitle,
+        en.watchEarn.rewardPendingMessage,
+      );
+    }
+  };
 
   return (
     <AppScreen>
@@ -64,14 +127,14 @@ const WatchEarnScreen = ({ navigation }) => {
           </Label>
 
           <Animated.View style={{ transform: [{ scale: pulse }] }}>
-            <ScalePressable onPress={() => setShowModal(true)}>
+            <ScalePressable onPress={onWatchAdPress} disabled={isRewardedLoading}>
               <LinearGradient
-                colors={['#55C45D', '#44AB51']}
+                colors={gradients.rewardedAction}
                 style={styles.watchButton}
               >
                 <MaterialCommunityIcons
                   name="play"
-                  color="#F1F8FF"
+                  color={palette.rewardedIconTint}
                   size={hp(2.7)}
                 />
                 <Label style={styles.watchButtonLabel}>
@@ -83,22 +146,13 @@ const WatchEarnScreen = ({ navigation }) => {
         </View>
       </ScrollView>
 
-      <Modal transparent visible={showModal} animationType="fade">
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Label style={styles.modalTitle}>{en.watchEarn.modalTitle}</Label>
-            <Label style={styles.modalText}>{en.watchEarn.modalMessage}</Label>
-            <ScalePressable
-              style={styles.modalButton}
-              onPress={() => setShowModal(false)}
-            >
-              <Label style={styles.modalButtonText}>
-                {en.watchEarn.modalButton}
-              </Label>
-            </ScalePressable>
-          </View>
-        </View>
-      </Modal>
+      <RewardStatusModal
+        visible={showModal}
+        title={modalTitle}
+        message={modalMessage}
+        buttonLabel={en.watchEarn.modalButton}
+        onClose={() => setShowModal(false)}
+      />
     </AppScreen>
   );
 };
@@ -162,45 +216,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: hp(2.1),
     fontFamily: FONT.medium,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: palette.overlay,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.pageHorizontal,
-  },
-  modalCard: {
-    width: '100%',
-    backgroundColor: palette.pageBottom,
-    borderRadius: hp(2),
-    paddingVertical: hp(4),
-    paddingHorizontal: wp(5),
-    alignItems: 'center',
-  },
-  modalTitle: {
-    color: COLORS.white,
-    fontSize: hp(3.1),
-    fontFamily: FONT.semiBold,
-  },
-  modalText: {
-    color: COLORS.white + HEX_OPACITY[83],
-    fontSize: hp(2.1),
-    marginBottom: hp(2),
-    textAlign: 'center',
-    fontFamily: FONT.medium,
-  },
-  modalButton: {
-    marginTop: hp(1.3),
-    backgroundColor: palette.green,
-    borderRadius: radius.pill,
-    paddingHorizontal: wp(7),
-    paddingVertical: hp(0.8),
-  },
-  modalButtonText: {
-    color: COLORS.white,
-    fontSize: hp(2.1),
-    fontFamily: FONT.semiBold,
   },
 });
 

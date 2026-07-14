@@ -4,6 +4,9 @@ import useUserSession, {
 } from './useUserSession';
 import useCoinsData from './useCoinsData';
 import useDashboardStatus from './useDashboardStatus';
+import useInterstitialAd from './useInterstitialAd';
+import useRewardedAd from './useRewardedAd';
+import useTransactionHistory from './useTransactionHistory';
 
 export {
   useUserSession,
@@ -11,4 +14,7 @@ export {
   useCurrentUser,
   useCoinsData,
   useDashboardStatus,
+  useInterstitialAd,
+  useRewardedAd,
+  useTransactionHistory,
 };

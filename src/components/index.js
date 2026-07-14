@@ -1,3 +1,4 @@
 import AppHeader from './appHeader';
+import RewardStatusModal from './RewardStatusModal';
 
-export { AppHeader };
+export { AppHeader, RewardStatusModal };

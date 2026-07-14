@@ -4,10 +4,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import Label from '../../common/Label';
 import { ScalePressable } from '../../components/ui';
 import { ensureUserProfile } from '../../services/firebaseServices';
-import { SCREEN, TAB } from '../../enums';
+import { TAB } from '../../enums';
 import { hp, wp, FONT, COLORS } from '../../enums/StyleGuide';
-import { palette, radius } from '../../constants/theme';
+import { palette } from '../../constants/theme';
 import { useNavigation } from '@react-navigation/native';
+import { en } from '../../languages';
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
@@ -17,13 +18,13 @@ const WelcomeScreen = () => {
 
   const onContinue = async () => {
     if (!username.trim()) {
-      Alert.alert('Username required');
+      Alert.alert(en.welcome.usernameRequired);
 
       return;
     }
 
     if (!gameId.trim()) {
-      Alert.alert('Game ID required');
+      Alert.alert(en.welcome.gameIdRequired);
 
       return;
     }
@@ -47,7 +48,7 @@ const WelcomeScreen = () => {
         ],
       });
     } catch (e) {
-      Alert.alert('Error', e.message);
+      Alert.alert(en.welcome.errorTitle, e.message);
     } finally {
       setLoading(false);
     }
@@ -58,14 +59,12 @@ const WelcomeScreen = () => {
       style={styles.container}
     >
       <View style={styles.card}>
-        <Label style={styles.title}>Welcome 👋</Label>
+        <Label style={styles.title}>{en.welcome.title}</Label>
 
-        <Label style={styles.subtitle}>
-          Complete your profile to continue.
-        </Label>
+        <Label style={styles.subtitle}>{en.welcome.subtitle}</Label>
 
         <TextInput
-          placeholder="Username"
+          placeholder={en.welcome.usernamePlaceholder}
           placeholderTextColor={COLORS.white}
           value={username}
           onChangeText={setUsername}
@@ -73,7 +72,7 @@ const WelcomeScreen = () => {
         />
 
         <TextInput
-          placeholder="Game ID"
+          placeholder={en.welcome.gameIdPlaceholder}
           placeholderTextColor={COLORS.white}
           value={gameId}
           onChangeText={setGameId}
@@ -87,7 +86,7 @@ const WelcomeScreen = () => {
           disabled={loading}
         >
           <Label style={styles.buttonText}>
-            {loading ? 'Please wait...' : 'Continue'}
+            {loading ? en.welcome.loading : en.welcome.continue}
           </Label>
         </ScalePressable>
       </View>
@@ -121,16 +120,16 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: hp(0.8),
     textAlign: 'center',
-    color: '#bbb',
+    color: palette.welcomeSubtitle,
     marginBottom: hp(3),
   },
   input: {
     height: 55,
-    backgroundColor: '#1F2A44',
+    backgroundColor: palette.welcomeInputBg,
     borderRadius: 12,
     paddingHorizontal: 16,
     marginBottom: 15,
-    color: 'white',
+    color: COLORS.white,
   },
   button: {
     height: 55,
@@ -141,7 +140,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: FONT.bold,
-    color: 'white',
+    color: COLORS.white,
     fontSize: hp(2),
   },
 });

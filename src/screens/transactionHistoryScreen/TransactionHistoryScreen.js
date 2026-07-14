@@ -1,15 +1,28 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Label from '../../common/Label';
+import React, { useCallback } from 'react';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { AppScreen } from '../../components/ui';
 import { en } from '../../languages';
-import { COLORS, FONT, HEX_OPACITY, hp, wp } from '../../enums/StyleGuide';
+import { hp, wp } from '../../enums/StyleGuide';
 import { AppHeader } from '../../components';
-import SvgIcon from '../../common/SvgIcon';
-import { SVG } from '../../assets';
+import { spacing } from '../../constants/theme';
+import { useInterstitialAd, useTransactionHistory } from '../../hooks';
+import TransactionCard from './components/TransactionCard';
+import EmptyState from './components/EmptyState';
+import LoadingState from './components/LoadingState';
 
 const TransactionHistoryScreen = ({ navigation }) => {
+  useInterstitialAd();
+  const { transactions, loading } = useTransactionHistory();
+
+  const renderItem = useCallback(
+    ({ item }) => <TransactionCard item={item} />,
+    [],
+  );
+
+  const keyExtractor = useCallback(item => item.key, []);
+
+  const itemSeparator = useCallback(() => <View style={styles.separator} />, []);
+
   return (
     <AppScreen>
       <AppHeader
@@ -19,37 +32,41 @@ const TransactionHistoryScreen = ({ navigation }) => {
         titleSpacing={wp(6)}
       />
 
-      <View style={styles.emptyWrap}>
-       <SvgIcon icon={SVG.document} height={hp(8)} width={hp(8)}/>
-        <Label style={styles.emptyTitle}>{en.transactionHistory.emptyTitle}</Label>
-        <Label style={styles.emptySubtitle}>{en.transactionHistory.emptySubtitle}</Label>
-      </View>
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <FlatList
+          data={transactions}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={[
+            styles.listContent,
+            transactions.length === 0 && styles.emptyContent,
+          ]}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={itemSeparator}
+          ListEmptyComponent={EmptyState}
+          initialNumToRender={8}
+          windowSize={10}
+          maxToRenderPerBatch={10}
+          removeClippedSubviews
+        />
+      )}
     </AppScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  emptyWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: wp(10),
-    marginBottom: hp(8),
+  listContent: {
+    paddingHorizontal: spacing.pageHorizontal,
+    paddingTop: hp(1.6),
+    paddingBottom: hp(4.6),
   },
-  emptyTitle: {
-    marginTop: hp(1.8),
-    color: COLORS.white,
-    fontSize: hp(3),
-    fontFamily: FONT.bold,
-    textAlign: 'center',
+  emptyContent: {
+    flexGrow: 1,
   },
-  emptySubtitle: {
-    marginTop: hp(1),
-    color: COLORS.white + HEX_OPACITY[62],
-    fontSize: hp(2),
-    textAlign: 'center',
-    lineHeight: hp(3),
-    fontFamily: FONT.medium,
+  separator: {
+    height: hp(1.35),
   },
 });
 

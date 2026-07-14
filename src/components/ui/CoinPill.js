@@ -1,16 +1,18 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { palette, radius, shadows } from '../../constants/theme';
 import { FONT, hp, wp } from '../../enums/StyleGuide';
 import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
 import { useCoinsData } from '../../hooks';
+import { useNavigation } from '@react-navigation/native';
+import { SCREEN } from '../../enums';
 
 const CoinPill = () => {
   const { coins } = useCoinsData();
+  const navigation = useNavigation()
   return (
     <LinearGradient
       colors={['#FF6A3C', '#E45A31']}
@@ -18,10 +20,10 @@ const CoinPill = () => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.row}>
+      <Pressable style={styles.row} onPress={() => navigation.navigate(SCREEN.TRANSACTION_HISTORY_SCREEN)}>
         <SvgIcon icon={SVG.coins} height={hp(2.6)} width={hp(2.6)} />
         <Label style={styles.amount}>{coins}</Label>
-      </View>
+      </Pressable>
     </LinearGradient>
   );
 };
