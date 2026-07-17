@@ -54,10 +54,13 @@ const WelcomeScreen = () => {
     }
   };
   return (
-    <LinearGradient
-      colors={[palette.pageTop, palette.pageBottom]}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[palette.pageTop, palette.pageBottom]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+      />
       <View style={styles.card}>
         <Label style={styles.title}>{en.welcome.title}</Label>
 
@@ -90,7 +93,7 @@ const WelcomeScreen = () => {
           </Label>
         </ScalePressable>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -103,8 +106,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    width: '100%',
     justifyContent: 'center',
     paddingHorizontal: wp(6),
+    backgroundColor: palette.pageTop,
   },
   card: {
     backgroundColor: palette.card,

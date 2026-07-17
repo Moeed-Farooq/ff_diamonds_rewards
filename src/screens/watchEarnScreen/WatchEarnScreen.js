@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
@@ -11,7 +10,7 @@ import { AppHeader, RewardStatusModal } from '../../components';
 import { useCoinsData, useRewardedAd } from '../../hooks';
 import { addCoins } from '../../services/firebaseServices';
 
-const WATCH_REWARD_COINS = 20;
+const WATCH_REWARD_COINS = 10;
 
 const WatchEarnScreen = ({ navigation }) => {
   const pulse = useRef(new Animated.Value(1)).current;
@@ -128,9 +127,11 @@ const WatchEarnScreen = ({ navigation }) => {
 
           <Animated.View style={{ transform: [{ scale: pulse }] }}>
             <ScalePressable onPress={onWatchAdPress} disabled={isRewardedLoading}>
-              <LinearGradient
-                colors={gradients.rewardedAction}
-                style={styles.watchButton}
+              <View
+                style={[
+                  styles.watchButton,
+                  { backgroundColor: gradients.rewardedAction[0] },
+                ]}
               >
                 <MaterialCommunityIcons
                   name="play"
@@ -140,7 +141,7 @@ const WatchEarnScreen = ({ navigation }) => {
                 <Label style={styles.watchButtonLabel}>
                   {en.watchEarn.button}
                 </Label>
-              </LinearGradient>
+              </View>
             </ScalePressable>
           </Animated.View>
         </View>

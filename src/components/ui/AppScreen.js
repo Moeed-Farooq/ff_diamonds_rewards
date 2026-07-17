@@ -1,25 +1,21 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { palette } from '../../constants/theme';
 
 const AppScreen = ({ children, style }) => {
   return (
-    <LinearGradient
-      colors={[palette.pageTop, palette.pageBottom]}
-      start={{ x: 0.2, y: 0 }}
-      end={{ x: 0.8, y: 1 }}
-      style={[styles.gradient, style]}
-    >
+    <View style={[styles.container, style]}>
       <SafeAreaView style={styles.safeArea}>{children}</SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  gradient: {
+  container: {
     flex: 1,
+    width: '100%',
+    backgroundColor: palette.pageTop,
   },
   safeArea: {
     flex: 1,

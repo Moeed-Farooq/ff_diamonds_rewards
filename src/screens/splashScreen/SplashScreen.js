@@ -51,12 +51,13 @@ const SplashScreen = () => {
   }, []);
 
   return (
-    <LinearGradient
-      colors={[palette.pageTop, palette.pageBottom]}
-      start={{ x: 0.2, y: 0 }}
-      end={{ x: 0.8, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[palette.pageTop, palette.pageBottom]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+      />
       <View style={styles.logoWrap}>
         <Image src={IMAGES.LOGO} style={styles.logo} />
       </View>
@@ -66,7 +67,7 @@ const SplashScreen = () => {
         <ActivityIndicator size="large" color={palette.orange} />
         <Label style={styles.loadingText}>{en.app.loading}</Label>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -75,9 +76,11 @@ export default SplashScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: wp(6),
+    backgroundColor: palette.pageTop,
   },
   logoWrap: {
     width: hp(15),

@@ -1,9 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
-import { gradients, palette } from '../../constants/theme';
+import { palette } from '../../constants/theme';
 import { ScalePressable } from '../ui';
 import { hp } from '../../enums/StyleGuide';
 
@@ -26,7 +25,7 @@ const RedemptionItemCard = ({ item, styles }) => {
 
   return (
     <ScalePressable style={styles.itemWrap}>
-      <LinearGradient colors={gradients.redemptionCard} style={styles.itemCard}>
+      <View style={[styles.itemCard, { backgroundColor: palette.card }]}>
         <View style={styles.itemImageBox}>
           <Label style={styles.itemImageText}>{item.title}</Label>
         </View>
@@ -42,7 +41,7 @@ const RedemptionItemCard = ({ item, styles }) => {
           size={hp(2.6)}
           color={palette.lockMuted}
         />
-      </LinearGradient>
+      </View>
     </ScalePressable>
   );
 };

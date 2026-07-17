@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
@@ -97,18 +96,16 @@ const DailyLoginScreen = ({ navigation }) => {
 
               return (
                 <ScalePressable key={`${reward}`} style={styles.rewardWrap}>
-                  <LinearGradient
-                    colors={
-                      isClaimed
-                        ? [COLORS.grey, COLORS.grey]
-                        : isCurrent
-                        ? [COLORS.darkGreen, COLORS.darkGreen]
-                        : [palette.pageBottom, palette.pageBottom]
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                  <View
                     style={[
                       styles.rewardTile,
+                      {
+                        backgroundColor: isClaimed
+                          ? COLORS.grey
+                          : isCurrent
+                          ? COLORS.darkGreen
+                          : palette.pageBottom,
+                      },
                       isCurrent && styles.activeRewardTile,
                     ]}
                   >
@@ -125,7 +122,7 @@ const DailyLoginScreen = ({ navigation }) => {
 
                       <Label style={styles.rewardValue}>{reward}</Label>
                     </View>
-                  </LinearGradient>
+                  </View>
                 </ScalePressable>
               );
             })}
@@ -133,20 +130,18 @@ const DailyLoginScreen = ({ navigation }) => {
         </View>
 
         <ScalePressable onPress={onClaim} disabled={!canClaim || claimLoading}>
-          <LinearGradient
-            colors={
-              canClaim
-                ? [COLORS.accent, COLORS.orange]
-                : [COLORS.grey, COLORS.grey]
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.claimButton}
+          <View
+            style={[
+              styles.claimButton,
+              {
+                backgroundColor: canClaim ? COLORS.accent : COLORS.grey,
+              },
+            ]}
           >
             <Label style={styles.claimText}>
               {canClaim ? en.dailyLogin.claimCoins : remainingTime}
             </Label>
-          </LinearGradient>
+          </View>
         </ScalePressable>
       </ScrollView>
 
