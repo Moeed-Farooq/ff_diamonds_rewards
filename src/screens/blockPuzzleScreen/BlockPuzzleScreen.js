@@ -25,7 +25,12 @@ import Animated, {
 import { BLOCK_SHAPES, SHAPE_COLORS } from '../../dummies';
 import { AppHeader } from '../../components';
 import { AppScreen } from '../../components/ui';
+import BannerAdView from '../../components/BannerAdView';
 import { addCoins } from '../../services/firebaseServices';
+import {
+  initializeMobileAds,
+  interstitialService,
+} from '../../services/ads';
 
 const BlockPuzzleScreen = () => {
   const BOARD_SIZE = 8;
@@ -68,7 +73,25 @@ const BlockPuzzleScreen = () => {
     setTimeout(() => {
       checkGameOver(initialBoard, initialShapes);
     }, 150);
+
+    initializeMobileAds()
+      .then(() => interstitialService.initialize())
+      .catch(error => {
+        console.log('Puzzle interstitial preload failed:', error?.message || error);
+      });
   }, []);
+
+  const loadNextShapeSet = async boardToUse => {
+    try {
+      await initializeMobileAds();
+      interstitialService.initialize();
+      await interstitialService.show();
+    } catch (error) {
+      console.log('Puzzle interstitial error:', error?.message || error);
+    } finally {
+      generateNewShapes(boardToUse);
+    }
+  };
 
   const checkGameOver = async (
     currentBoardState,
@@ -227,7 +250,7 @@ const BlockPuzzleScreen = () => {
       const remaining = updatedShapes.filter(Boolean);
       if (remaining.length === 0) {
         setTimeout(() => {
-          generateNewShapes(boardAfterClear);
+          loadNextShapeSet(boardAfterClear);
         }, 250);
       } else {
         checkGameOver(boardAfterClear, updatedShapes, newScore);
@@ -378,6 +401,10 @@ const BlockPuzzleScreen = () => {
           })}
         </View>
 
+        <View style={styles.bannerWrap}>
+          <BannerAdView />
+        </View>
+
         <Modal visible={isGameOver} transparent={true} animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={styles.popupContainer}>
@@ -434,6 +461,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     alignItems: 'center',
     minHeight: hp(12),
+  },
+  bannerWrap: {
+    marginTop: 'auto',
+    paddingBottom: hp(1.5),
   },
   smallBlock: {
     width: wp(8.5),

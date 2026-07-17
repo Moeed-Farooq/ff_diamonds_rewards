@@ -14,7 +14,6 @@ import {
   wp,
 } from '../enums/StyleGuide';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import LinearGradient from 'react-native-linear-gradient';
 import { palette } from '../constants/theme';
 
 const ICON_SIZE = wp(6);
@@ -67,7 +66,7 @@ const BottomNavigator = () => {
           position: 'absolute',
           height: hp(12),
           borderRadius: wp(8),
-          backgroundColor: 'transparent',
+          backgroundColor: palette.tabBar,
           borderColor: COLORS.orange + HEX_OPACITY[55],
           shadowColor: COLORS.orange,
           shadowOffset: { width: 0, height: 8 },
@@ -75,17 +74,6 @@ const BottomNavigator = () => {
           shadowRadius: 16,
           elevation: 14,
         },
-        tabBarBackground: () => (
-          <LinearGradient
-            colors={[palette.pageTop, palette.pageBottom, palette.pageTop]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[
-              StyleSheet.absoluteFill,
-              { borderRadius: wp(8), overflow: 'hidden' },
-            ]}
-          />
-        ),
       })}
     >
       <Tab.Screen name={SCREEN.HOME_SCREEN} component={ui.HomeScreen} />

@@ -11,6 +11,7 @@ class InterstitialService {
     this.isLoading = false;
     this.loadPromise = null;
     this.unsubscribeEvents = [];
+    this.pendingShowResolver = null;
   }
 
   initialize() {
@@ -24,6 +25,15 @@ class InterstitialService {
       }
     });
     this.unsubscribeEvents = [];
+  }
+
+  resolvePendingShow(payload) {
+    if (!this.pendingShowResolver) {
+      return;
+    }
+
+    this.pendingShowResolver(payload);
+    this.pendingShowResolver = null;
   }
 
   createAd() {
@@ -47,6 +57,7 @@ class InterstitialService {
     const onClosed = this.interstitial.addAdEventListener(
       AdEventType.CLOSED,
       () => {
+        this.resolvePendingShow({ shown: true });
         this.isLoaded = false;
         this.preload();
       },
@@ -57,6 +68,7 @@ class InterstitialService {
       error => {
         this.isLoaded = false;
         this.isLoading = false;
+        this.resolvePendingShow({ shown: false });
         console.log('Interstitial load/show error:', error?.message || error);
 
         setTimeout(() => {
@@ -110,21 +122,44 @@ class InterstitialService {
     return this.loadPromise;
   }
 
+  performShow() {
+    return new Promise(resolve => {
+      this.pendingShowResolver = resolve;
+
+      this.interstitial.show().catch(error => {
+        this.pendingShowResolver = null;
+        this.isLoaded = false;
+        console.log('Interstitial show failed:', error?.message || error);
+        this.preload();
+        resolve({ shown: false });
+      });
+    });
+  }
+
+  async show() {
+    const loaded = await this.preload();
+
+    if (!loaded || !this.interstitial) {
+      this.isLoaded = false;
+      this.isLoading = false;
+      const retriedLoad = await this.preload();
+
+      if (!retriedLoad || !this.interstitial) {
+        return { shown: false };
+      }
+    }
+
+    return this.performShow();
+  }
+
   async showIfReady() {
     if (!this.interstitial || !this.isLoaded) {
       this.preload();
       return false;
     }
 
-    try {
-      await this.interstitial.show();
-      return true;
-    } catch (error) {
-      this.isLoaded = false;
-      console.log('Interstitial show failed:', error?.message || error);
-      this.preload();
-      return false;
-    }
+    const result = await this.performShow();
+    return result.shown;
   }
 }
 

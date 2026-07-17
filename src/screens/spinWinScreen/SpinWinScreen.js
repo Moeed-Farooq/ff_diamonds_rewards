@@ -7,7 +7,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
@@ -277,16 +276,18 @@ const SpinWinScreen = ({ navigation }) => {
         </View>
 
         <ScalePressable onPress={onPrimaryButtonPress} disabled={isActionBusy}>
-          <LinearGradient
-            colors={
-              shouldWatchAdForSpin
-                ? gradients.rewardedAction
-                : gradients.spinAction
-            }
-            style={styles.spinButton}
+          <View
+            style={[
+              styles.spinButton,
+              {
+                backgroundColor: shouldWatchAdForSpin
+                  ? gradients.rewardedAction[0]
+                  : gradients.spinAction[0],
+              },
+            ]}
           >
             <Label style={styles.spinButtonText}>{primaryButtonLabel}</Label>
-          </LinearGradient>
+          </View>
         </ScalePressable>
       </ScrollView>
 

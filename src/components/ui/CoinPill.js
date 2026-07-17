@@ -1,6 +1,5 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import Label from '../../common/Label';
 import { palette, radius, shadows } from '../../constants/theme';
 import { FONT, hp, wp } from '../../enums/StyleGuide';
@@ -12,19 +11,17 @@ import { SCREEN } from '../../enums';
 
 const CoinPill = () => {
   const { coins } = useCoinsData();
-  const navigation = useNavigation()
+  const navigation = useNavigation();
   return (
-    <LinearGradient
-      colors={['#FF6A3C', '#E45A31']}
-      start={{ x: 0, y: 0.3 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-      <Pressable style={styles.row} onPress={() => navigation.navigate(SCREEN.TRANSACTION_HISTORY_SCREEN)}>
+    <View style={styles.container}>
+      <Pressable
+        style={styles.row}
+        onPress={() => navigation.navigate(SCREEN.TRANSACTION_HISTORY_SCREEN)}
+      >
         <SvgIcon icon={SVG.coins} height={hp(2.6)} width={hp(2.6)} />
         <Label style={styles.amount}>{coins}</Label>
       </Pressable>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -35,6 +32,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(0.95),
     borderRadius: radius.lg,
     borderWidth: 1,
+    backgroundColor: palette.orange,
     ...shadows.glow,
   },
   row: {

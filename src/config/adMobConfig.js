@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-export const useTestAds = false; 
+export const useTestAds = true; 
 
 const TEST_ADMOB_IDS = {
   android: {

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen, ScalePressable } from '../../components/ui';
@@ -203,17 +202,17 @@ const ScratchWinScreen = ({ navigation }) => {
                 onPress={() => revealCard(card)}
                 disabled={isCardLocked || loading}
               >
-                <LinearGradient
-                  colors={
-                    isClaimed
-                      ? gradients.scratchClaimed
-                      : canPlay
-                      ? gradients.scratchAvailable
-                      : gradients.scratchDisabled
-                  }
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.scratchTile}
+                <View
+                  style={[
+                    styles.scratchTile,
+                    {
+                      backgroundColor: isClaimed
+                        ? gradients.scratchClaimed[0]
+                        : canPlay
+                        ? gradients.scratchAvailable[0]
+                        : gradients.scratchDisabled[0],
+                    },
+                  ]}
                 >
                   {isClaimed ? (
                     <>
@@ -240,7 +239,7 @@ const ScratchWinScreen = ({ navigation }) => {
                       </Label>
                     </>
                   )}
-                </LinearGradient>
+                </View>
               </ScalePressable>
             );
           })}
@@ -251,16 +250,18 @@ const ScratchWinScreen = ({ navigation }) => {
             onPress={grantAdBasedExtraScratch}
             disabled={isActionBusy}
           >
-            <LinearGradient
-              colors={gradients.rewardedAction}
-              style={styles.watchAdButton}
+            <View
+              style={[
+                styles.watchAdButton,
+                { backgroundColor: gradients.rewardedAction[0] },
+              ]}
             >
               <Label style={styles.watchAdButtonText}>
                 {isRewardedLoading || isGrantingExtraScratch
                   ? en.scratchWin.buttonLoadingAd
                   : en.scratchWin.buttonWatchAd}
               </Label>
-            </LinearGradient>
+            </View>
           </ScalePressable>
         ) : null}
       </ScrollView>
