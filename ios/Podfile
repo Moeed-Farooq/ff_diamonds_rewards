@@ -8,11 +8,9 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# Required by firebase-ios-sdk / @react-native-firebase (Swift pods)
+use_frameworks! :linkage => :static
+$RNFirebaseAsStaticFramework = true
 
 target 'FFDiamondsRewards' do
   config = use_native_modules!
@@ -30,5 +28,15 @@ target 'FFDiamondsRewards' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Xcode 26.4+ / Apple Clang 21: fmt 11.0.2 consteval fails to compile.
+    # Build fmt as C++17 so FMT_USE_CONSTEVAL is disabled. Fixed upstream in fmt 12.1.0 (RN 0.84+).
+    installer.pods_project.targets.each do |target|
+      if target.name == 'fmt'
+        target.build_configurations.each do |config|
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        end
+      end
+    end
   end
 end
