@@ -49,6 +49,7 @@ export const palette = {
   profileActionRemoveAds: '#FF5B4A',
   profileActionContact: '#F0A332',
   profileActionShare: '#9A42C9',
+  profileActionLogout: '#FF5252',
   shapeColorOne: '#C9B8BC',
   shapeColorTwo: '#FFBB00',
   shapeColorThree: '#DBEDFF',

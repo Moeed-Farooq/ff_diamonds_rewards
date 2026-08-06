@@ -195,6 +195,13 @@ export const profileActions = [
     icon: 'share-variant-outline',
     color: palette.profileActionShare,
   },
+  {
+    id: 'logout',
+    title: en.rewardData.logout,
+    subtitle: en.rewardData.logoutSubtitle,
+    icon: 'logout',
+    color: palette.profileActionLogout,
+  },
 ];
 
 export const BLOCK_SHAPES = [
