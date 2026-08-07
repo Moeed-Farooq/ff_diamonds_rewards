@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Animated, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { Alert, Animated, ScrollView, Share, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen } from '../../components/ui';
@@ -13,6 +13,7 @@ import { AppHeader } from '../../components';
 import ProfileStatItem from '../../components/ProfileStatItem';
 import ProfileSettingsItem from '../../components/ProfileSettingsItem';
 import { useUserProfile, useCoinsData } from '../../hooks';
+import { logoutUser } from '../../services/firebaseServices';
 
 const PLAY_STORE_URL =
   'https://play.google.com/store/apps/details?id=com.perkmedia.FFdiamonds';
@@ -75,6 +76,38 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
+  const onLogout = () => {
+    Alert.alert(
+      en.profile.logoutConfirmTitle,
+      en.profile.logoutConfirmMessage,
+      [
+        {
+          text: en.profile.cancel,
+          style: 'cancel',
+        },
+        {
+          text: en.rewardData.logout,
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logoutUser();
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: SCREEN.WELCOME_SCREEN,
+                  },
+                ],
+              });
+            } catch (error) {
+              console.log('Logout error:', error?.message || error);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const onActionPress = id => {
     if (id === 'history') {
       navigation.navigate(SCREEN.TRANSACTION_HISTORY_SCREEN);
@@ -93,6 +126,11 @@ const ProfileScreen = ({ navigation }) => {
 
     if (id === 'share') {
       onShareApp();
+      return;
+    }
+
+    if (id === 'logout') {
+      onLogout();
     }
   };
 

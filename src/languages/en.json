@@ -101,7 +101,9 @@
     "loading": "Please wait...",
     "usernameRequired": "Username required",
     "gameIdRequired": "Game ID required",
-    "errorTitle": "Error"
+    "errorTitle": "Error",
+    "orDivider": "OR",
+    "guestMode": "Continue as Guest"
   },
   "withdrawal": {
     "headerTitle": "Redeem Items",
@@ -124,7 +126,10 @@
     "footerSubtitle": "Made with ❤ for diamond earners",
     "contactPopupMessage": "No email app found. Please contact:\nsupport@lootsquest.com",
     "shareTitle": "Share FF Diamonds",
-    "shareMessage": "Earn free diamonds every day with FF Diamonds Rewards! Download now:"
+    "shareMessage": "Earn free diamonds every day with FF Diamonds Rewards! Download now:",
+    "logoutConfirmTitle": "Log Out",
+    "logoutConfirmMessage": "Are you sure you want to log out?",
+    "cancel": "Cancel"
   },
   "transactionHistory": {
     "screenTitle": "Transaction History",
@@ -220,7 +225,9 @@
     "contactUs": "Contact Us",
     "contactUsSubtitle": "Get help and support",
     "shareApp": "Share App",
-    "shareAppSubtitle": "Share FF Diamonds with friends"
+    "shareAppSubtitle": "Share FF Diamonds with friends",
+    "logout": "Log Out",
+    "logoutSubtitle": "Sign out of your account"
   },
   "legacy": {
     "freeDailyRobux": "Free Daily Robux",

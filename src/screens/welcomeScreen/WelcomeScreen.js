@@ -5,7 +5,7 @@ import Label from '../../common/Label';
 import { ScalePressable } from '../../components/ui';
 import { ensureUserProfile } from '../../services/firebaseServices';
 import { TAB } from '../../enums';
-import { hp, wp, FONT, COLORS } from '../../enums/StyleGuide';
+import { hp, wp, FONT, COLORS, HEX_OPACITY } from '../../enums/StyleGuide';
 import { palette } from '../../constants/theme';
 import { useNavigation } from '@react-navigation/native';
 import { en } from '../../languages';
@@ -14,7 +14,10 @@ const WelcomeScreen = () => {
   const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [gameId, setGameId] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [continueLoading, setContinueLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
+
+  const isAnyLoading = continueLoading || guestLoading;
 
   const onContinue = async () => {
     if (!username.trim()) {
@@ -30,7 +33,7 @@ const WelcomeScreen = () => {
     }
 
     try {
-      setLoading(true);
+      setContinueLoading(true);
 
       await ensureUserProfile({
         username,
@@ -50,9 +53,37 @@ const WelcomeScreen = () => {
     } catch (e) {
       Alert.alert(en.welcome.errorTitle, e.message);
     } finally {
-      setLoading(false);
+      setContinueLoading(false);
     }
   };
+
+  const onGuestContinue = async () => {
+    try {
+      setGuestLoading(true);
+      const guestGameId = Math.floor(
+        10000000 + Math.random() * 90000000,
+      ).toString();
+
+      await ensureUserProfile({
+        username: 'Guest',
+        gameId: guestGameId,
+      });
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: TAB.BOTTOM,
+          },
+        ],
+      });
+    } catch (e) {
+      Alert.alert(en.welcome.errorTitle, e.message);
+    } finally {
+      setGuestLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -86,10 +117,26 @@ const WelcomeScreen = () => {
         <ScalePressable
           style={styles.button}
           onPress={onContinue}
-          disabled={loading}
+          disabled={isAnyLoading}
         >
           <Label style={styles.buttonText}>
-            {loading ? en.welcome.loading : en.welcome.continue}
+            {continueLoading ? en.welcome.loading : en.welcome.continue}
+          </Label>
+        </ScalePressable>
+
+        <View style={styles.dividerContainer}>
+          <View style={styles.dividerLine} />
+          <Label style={styles.dividerText}>{en.welcome.orDivider}</Label>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <ScalePressable
+          style={styles.guestButton}
+          onPress={onGuestContinue}
+          disabled={isAnyLoading}
+        >
+          <Label style={styles.guestButtonText}>
+            {guestLoading ? en.welcome.loading : en.welcome.guestMode}
           </Label>
         </ScalePressable>
       </View>
@@ -148,4 +195,35 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: hp(2),
   },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp(2),
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.white + HEX_OPACITY[30],
+  },
+  dividerText: {
+    marginHorizontal: wp(3),
+    color: palette.welcomeSubtitle,
+    fontFamily: FONT.semiBold,
+    fontSize: hp(1.6),
+  },
+  guestButton: {
+    height: 55,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: palette.orange,
+  },
+  guestButtonText: {
+    fontFamily: FONT.bold,
+    color: palette.orange,
+    fontSize: hp(2),
+  },
 });
+
