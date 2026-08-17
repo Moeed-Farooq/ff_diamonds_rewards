@@ -13,42 +13,56 @@ import {
   hasCompletedOnboarding,
   updateDailyStreak,
 } from '../../services/firebaseServices';
+import { showAppOpenIfAvailable } from '../../services/ads';
 
 const SplashScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
     let mounted = true;
+
+    const navigateTo = routeName => {
+      if (!mounted) {
+        return;
+      }
+
+      const go = () => {
+        if (!mounted) {
+          return;
+        }
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: routeName }],
+        });
+      };
+
+      const shown = showAppOpenIfAvailable({
+        onClosed: go,
+        onError: go,
+      });
+
+      if (!shown) {
+        go();
+      }
+    };
+
     const initializeApp = async () => {
       try {
         await new Promise(resolve => setTimeout(resolve, 1800));
         const result = await hasCompletedOnboarding();
         await updateDailyStreak();
         if (!mounted) return;
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: result.isCompleted ? TAB.BOTTOM : SCREEN.WELCOME_SCREEN,
-            },
-          ],
-        });
+        navigateTo(result.isCompleted ? TAB.BOTTOM : SCREEN.WELCOME_SCREEN);
       } catch (e) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: SCREEN.WELCOME_SCREEN,
-            },
-          ],
-        });
+        navigateTo(SCREEN.WELCOME_SCREEN);
       }
     };
     initializeApp();
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

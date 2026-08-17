@@ -11,6 +11,7 @@ import { en } from '../../languages';
 import { AppHeader } from '../../components';
 import { useUserProfile, useDashboardStatus } from '../../hooks';
 import BannerAdView from '../../components/BannerAdView';
+import AppNativeAd from '../../components/NativeAdView';
 
 const TAB_BAR_HEIGHT = hp(12);
 const BANNER_AREA_HEIGHT = hp(8);
@@ -122,6 +123,10 @@ const HomeScreen = ({ navigation }) => {
               </View>
             </View>
           </ScalePressable>
+
+          <View style={styles.nativeAdWrap}>
+            <AppNativeAd />
+          </View>
 
           <View style={styles.list}>
             {otherCards.map(item => {
@@ -246,6 +251,9 @@ const styles = StyleSheet.create({
     color: palette.activeGreen,
   },
   featuredWrap: {
+    marginBottom: hp(1.6),
+  },
+  nativeAdWrap: {
     marginBottom: hp(1.6),
   },
   featured: {

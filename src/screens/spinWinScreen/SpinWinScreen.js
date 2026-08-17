@@ -17,6 +17,7 @@ import { en } from '../../languages';
 import SvgIcon from '../../common/SvgIcon';
 import { SVG } from '../../assets';
 import { AppHeader, RewardStatusModal } from '../../components';
+import BannerAdView from '../../components/BannerAdView';
 import SpinWheelGraphic from '../../components/SpinWheelGraphic';
 import { useCoinsData, useRewardedAd } from '../../hooks';
 import {
@@ -291,6 +292,10 @@ const SpinWinScreen = ({ navigation }) => {
         </ScalePressable>
       </ScrollView>
 
+      <View style={styles.bannerWrap}>
+        <BannerAdView />
+      </View>
+
       <Modal transparent visible={showModal} animationType="fade">
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
@@ -325,7 +330,13 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: spacing.pageHorizontal,
     paddingTop: hp(1.3),
-    paddingBottom: hp(6),
+    paddingBottom: hp(10),
+  },
+  bannerWrap: {
+    paddingVertical: hp(0.6),
+    backgroundColor: palette.pageBottom,
+    borderTopWidth: 1,
+    borderTopColor: palette.whiteTint08,
   },
   summaryCard: {
     borderRadius: radius.lg,
@@ -385,7 +396,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   spinButton: {
-    marginTop: hp(10),
+    marginTop: hp(4),
+    marginBottom: hp(2),
     borderRadius: radius.pill,
     paddingVertical: hp(1.2),
     alignItems: 'center',

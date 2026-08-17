@@ -7,6 +7,7 @@ import { gradients, palette, radius, shadows, spacing } from '../../constants/th
 import { COLORS, FONT, HEX_OPACITY, hp, wp } from '../../enums/StyleGuide';
 import { en } from '../../languages';
 import { AppHeader, RewardStatusModal } from '../../components';
+import BannerAdView from '../../components/BannerAdView';
 import { useCoinsData, useRewardedAd } from '../../hooks';
 import { addCoins } from '../../services/firebaseServices';
 
@@ -147,6 +148,10 @@ const WatchEarnScreen = ({ navigation }) => {
         </View>
       </ScrollView>
 
+      <View style={styles.bannerWrap}>
+        <BannerAdView />
+      </View>
+
       <RewardStatusModal
         visible={showModal}
         title={modalTitle}
@@ -162,7 +167,13 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: spacing.pageHorizontal,
     paddingTop: hp(1.3),
-    paddingBottom: hp(4),
+    paddingBottom: hp(10),
+  },
+  bannerWrap: {
+    paddingVertical: hp(0.6),
+    backgroundColor: palette.pageBottom,
+    borderTopWidth: 1,
+    borderTopColor: palette.whiteTint08,
   },
   topCard: {
     borderRadius: radius.lg,
@@ -206,6 +217,7 @@ const styles = StyleSheet.create({
   },
   watchButton: {
     marginTop: hp(3.6),
+    marginBottom: hp(2),
     borderRadius: hp(2),
     paddingVertical: hp(1.1),
     flexDirection: 'row',

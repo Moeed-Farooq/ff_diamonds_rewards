@@ -16,7 +16,8 @@
     "earnDiamonds": "Earn Diamonds",
     "todayProgress": "Today's Progress",
     "claimed": "Claimed",
-    "readyToEarn":" Ready to earn some diamonds?"
+    "readyToEarn":" Ready to earn some diamonds?",
+    "sponsored": "Sponsored"
   },
   "dailyLogin": {
     "screenTitle": "Daily Login Bonus",
