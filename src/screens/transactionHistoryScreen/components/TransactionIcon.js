@@ -67,6 +67,16 @@ const ICON_MAP = {
     backgroundColor: palette.transactionBonusBg,
     content: <SvgIcon icon={SVG.coins} height={hp(3)} width={hp(3)} />,
   },
+  redeem: {
+    backgroundColor: palette.transactionGiftBg,
+    content: (
+      <MaterialCommunityIcons
+        name="gift-outline"
+        size={hp(3)}
+        color={palette.transactionGiftIcon}
+      />
+    ),
+  },
   default: {
     backgroundColor: palette.transactionBonusBg,
     content: <SvgIcon icon={SVG.coins} height={hp(3)} width={hp(3)} />,

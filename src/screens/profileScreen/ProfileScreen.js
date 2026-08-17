@@ -1,5 +1,13 @@
 import React, { useRef, useState } from 'react';
-import { Alert, Animated, ScrollView, Share, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  ScrollView,
+  Share,
+  StyleSheet,
+  View,
+} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Label from '../../common/Label';
 import { AppScreen } from '../../components/ui';
@@ -13,17 +21,17 @@ import { AppHeader } from '../../components';
 import ProfileStatItem from '../../components/ProfileStatItem';
 import ProfileSettingsItem from '../../components/ProfileSettingsItem';
 import { useUserProfile, useCoinsData } from '../../hooks';
-import { logoutUser } from '../../services/firebaseServices';
+import { deleteUserAccount, logoutUser } from '../../services/firebaseServices';
 
 const PLAY_STORE_URL =
   'https://play.google.com/store/apps/details?id=com.perkmedia.FFdiamonds';
 
 const ProfileScreen = ({ navigation }) => {
   const [isContactVisible, setIsContactVisible] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const popupTranslateY = useRef(new Animated.Value(100)).current;
   const { username, gameId } = useUserProfile();
   const { coins ,dailyStreak,transactions  } = useCoinsData();
-  console.log(dailyStreak);
 
   const profileStats = [
     {
@@ -76,6 +84,17 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
+  const resetToWelcome = () => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: SCREEN.WELCOME_SCREEN,
+        },
+      ],
+    });
+  };
+
   const onLogout = () => {
     Alert.alert(
       en.profile.logoutConfirmTitle,
@@ -91,17 +110,69 @@ const ProfileScreen = ({ navigation }) => {
           onPress: async () => {
             try {
               await logoutUser();
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: SCREEN.WELCOME_SCREEN,
-                  },
-                ],
-              });
+              resetToWelcome();
             } catch (error) {
               console.log('Logout error:', error?.message || error);
             }
+          },
+        },
+      ],
+    );
+  };
+
+  const performAccountDeletion = async () => {
+    if (isDeletingAccount) {
+      return;
+    }
+
+    setIsDeletingAccount(true);
+
+    try {
+      await deleteUserAccount();
+      resetToWelcome();
+    } catch (error) {
+      console.log('Delete account error:', error?.message || error);
+      Alert.alert(
+        en.profile.deleteFailedTitle,
+        en.profile.deleteFailedMessage,
+      );
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
+  const onConfirmDeleteAccount = () => {
+    Alert.alert(
+      en.profile.deleteConfirmTitle,
+      en.profile.deleteConfirmMessage,
+      [
+        {
+          text: en.profile.cancel,
+          style: 'cancel',
+        },
+        {
+          text: en.profile.deleteAccount,
+          style: 'destructive',
+          onPress: performAccountDeletion,
+        },
+      ],
+    );
+  };
+
+  const onDeleteAccount = () => {
+    Alert.alert(
+      en.profile.deleteAccountTitle,
+      en.profile.deleteAccountMessage,
+      [
+        {
+          text: en.profile.cancel,
+          style: 'cancel',
+        },
+        {
+          text: en.profile.continueDelete,
+          style: 'destructive',
+          onPress: () => {
+            setTimeout(onConfirmDeleteAccount, 350);
           },
         },
       ],
@@ -126,6 +197,11 @@ const ProfileScreen = ({ navigation }) => {
 
     if (id === 'share') {
       onShareApp();
+      return;
+    }
+
+    if (id === 'deleteAccount') {
+      onDeleteAccount();
       return;
     }
 
@@ -194,6 +270,15 @@ const ProfileScreen = ({ navigation }) => {
             {en.profile.contactPopupMessage}
           </Label>
         </Animated.View>
+      ) : null}
+
+      {isDeletingAccount ? (
+        <View style={styles.deletingOverlay}>
+          <ActivityIndicator size="small" color={COLORS.white} />
+          <Label style={styles.deletingText}>
+            {en.profile.deletingAccount}
+          </Label>
+        </View>
       ) : null}
     </AppScreen>
   );
@@ -288,6 +373,19 @@ const styles = StyleSheet.create({
     fontSize: hp(1.9),
     fontFamily: FONT.medium,
     lineHeight: hp(3),
+  },
+  deletingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: palette.overlay,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 20,
+  },
+  deletingText: {
+    marginTop: hp(1.4),
+    color: COLORS.white,
+    fontSize: hp(1.9),
+    fontFamily: FONT.medium,
   },
 });
 

@@ -46,7 +46,9 @@ const TransactionCard = ({ item }) => {
       </View>
 
       <View style={styles.amountWrap}>
-        <Label style={styles.amountText}>{item?.amountText}</Label>
+        <Label style={[styles.amountText, item?.isDebit && styles.debitText]}>
+          {item?.amountText}
+        </Label>
         <View style={styles.coinRow}>
           <SvgIcon icon={SVG.coins} height={hp(2.3)} width={hp(2.3)} />
           <Label style={styles.coinLabel}>{en.app.coins}</Label>
@@ -92,6 +94,9 @@ const styles = StyleSheet.create({
     color: palette.activeGreen,
     fontSize: hp(3),
     fontFamily: FONT.bold,
+  },
+  debitText: {
+    color: COLORS.red,
   },
   coinRow: {
     marginTop: hp(0.25),

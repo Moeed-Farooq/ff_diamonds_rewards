@@ -50,6 +50,7 @@ export const palette = {
   profileActionContact: '#F0A332',
   profileActionShare: '#9A42C9',
   profileActionLogout: '#FF5252',
+  profileActionDelete: '#E53935',
   shapeColorOne: '#C9B8BC',
   shapeColorTwo: '#FFBB00',
   shapeColorThree: '#DBEDFF',

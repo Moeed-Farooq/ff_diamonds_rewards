@@ -196,6 +196,13 @@ export const profileActions = [
     color: palette.profileActionShare,
   },
   {
+    id: 'deleteAccount',
+    title: en.rewardData.deleteAccount,
+    subtitle: en.rewardData.deleteAccountSubtitle,
+    icon: 'trash-can-outline',
+    color: palette.profileActionDelete,
+  },
+  {
     id: 'logout',
     title: en.rewardData.logout,
     subtitle: en.rewardData.logoutSubtitle,

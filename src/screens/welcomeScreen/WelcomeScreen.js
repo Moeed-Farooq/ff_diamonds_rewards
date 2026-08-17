@@ -37,8 +37,8 @@ const WelcomeScreen = () => {
 
       await ensureUserProfile({
         username,
-
         gameId,
+        isGuest: false,
       });
 
       navigation.reset({
@@ -67,6 +67,7 @@ const WelcomeScreen = () => {
       await ensureUserProfile({
         username: 'Guest',
         gameId: guestGameId,
+        isGuest: true,
       });
 
       navigation.reset({

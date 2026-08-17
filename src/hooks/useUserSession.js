@@ -5,13 +5,30 @@ import {
   subscribeToAuthState,
   subscribeToUserProfile,
 } from '../services/firebaseServices';
+import { getSessionMode, SESSION_MODE } from '../services/sessionService';
+import { isGuestProfile } from '../helpers';
 
 const useUserSession = () => {
   const [user, setUser] = useState(() => getCurrentUser());
   const [profile, setProfile] = useState(null);
+  const [sessionMode, setSessionModeState] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(() => !getCurrentUser());
   const [isProfileLoading, setIsProfileLoading] = useState(() => !!getCurrentUser());
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    getSessionMode().then(mode => {
+      if (mounted) {
+        setSessionModeState(mode);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthState(
@@ -71,6 +88,10 @@ const useUserSession = () => {
     }
   }, [user?.uid]);
 
+  const isGuest =
+    sessionMode === SESSION_MODE.GUEST ||
+    (sessionMode !== SESSION_MODE.ACTIVE && isGuestProfile(profile));
+
   return useMemo(
     () => ({
       user,
@@ -79,7 +100,8 @@ const useUserSession = () => {
       isAnonymous: Boolean(user?.isAnonymous),
       username: profile?.username || '',
       gameId: profile?.gameId || '',
-      loading: isAuthLoading || isProfileLoading,
+      isGuest,
+      loading: isAuthLoading || isProfileLoading || sessionMode === null,
       isAuthLoading,
       isProfileLoading,
       error,
@@ -88,8 +110,10 @@ const useUserSession = () => {
     [
       user,
       profile,
+      isGuest,
       isAuthLoading,
       isProfileLoading,
+      sessionMode,
       error,
       refreshProfile,
     ],
@@ -115,6 +139,7 @@ export const useUserProfile = () => {
     uid,
     username,
     gameId,
+    isGuest,
     loading,
     isProfileLoading,
     error,
@@ -126,6 +151,7 @@ export const useUserProfile = () => {
     uid,
     username,
     gameId,
+    isGuest,
     loading,
     isProfileLoading,
     error,

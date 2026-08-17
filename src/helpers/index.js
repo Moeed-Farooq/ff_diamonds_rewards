@@ -154,3 +154,19 @@ export const canSpinWheel = lastResetAt => {
 export const getRemainingSpins = spinsUsed => {
   return Math.max(5 - (spinsUsed || 0), 0);
 };
+
+export const isGuestProfile = profile => {
+  if (!profile) {
+    return false;
+  }
+
+  if (profile.isGuest === true) {
+    return true;
+  }
+
+  if (profile.isGuest === false) {
+    return false;
+  }
+
+  return profile.username === 'Guest';
+};

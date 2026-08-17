@@ -45,12 +45,18 @@ const useTransactionHistory = () => {
 
   const preparedTransactions = useMemo(
     () =>
-      transactions.map((item, index) => ({
-        ...item,
-        displayTitle: item?.title || buildFallbackTitle(item),
-        amountText: `+${Number(item?.coins || 0)}`,
-        key: item?.id || `${item?.type || 'tx'}-${index}`,
-      })),
+      transactions.map((item, index) => {
+        const coins = Number(item?.coins || 0);
+        const isDebit = coins < 0;
+
+        return {
+          ...item,
+          displayTitle: item?.title || buildFallbackTitle(item),
+          amountText: isDebit ? `${coins}` : `+${coins}`,
+          isDebit,
+          key: item?.id || `${item?.type || 'tx'}-${index}`,
+        };
+      }),
     [transactions],
   );
 

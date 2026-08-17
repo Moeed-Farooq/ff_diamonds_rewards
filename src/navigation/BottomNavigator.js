@@ -15,6 +15,7 @@ import {
 } from '../enums/StyleGuide';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { palette } from '../constants/theme';
+import { useUserProfile } from '../hooks';
 
 const ICON_SIZE = wp(6);
 
@@ -51,6 +52,32 @@ const renderIcon =
 
 const BottomNavigator = () => {
   const Tab = createBottomTabNavigator();
+  const { isGuest } = useUserProfile();
+
+  const guestTabListeners = ({ navigation }) => ({
+    tabPress: e => {
+      if (!isGuest) {
+        return;
+      }
+
+      e.preventDefault();
+
+      const rootNavigation = navigation.getParent();
+
+      if (rootNavigation) {
+        rootNavigation.reset({
+          index: 0,
+          routes: [{ name: SCREEN.WELCOME_SCREEN }],
+        });
+        return;
+      }
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: SCREEN.WELCOME_SCREEN }],
+      });
+    },
+  });
 
   return (
     <Tab.Navigator
@@ -77,8 +104,16 @@ const BottomNavigator = () => {
       })}
     >
       <Tab.Screen name={SCREEN.HOME_SCREEN} component={ui.HomeScreen} />
-      <Tab.Screen name={SCREEN.WITHDRAWAL_SCREEN} component={ui.WithdrawalScreen} />
-      <Tab.Screen name={SCREEN.PROFILE_SCREEN} component={ui.ProfileScreen} />
+      <Tab.Screen
+        name={SCREEN.WITHDRAWAL_SCREEN}
+        component={ui.WithdrawalScreen}
+        listeners={guestTabListeners}
+      />
+      <Tab.Screen
+        name={SCREEN.PROFILE_SCREEN}
+        component={ui.ProfileScreen}
+        listeners={guestTabListeners}
+      />
     </Tab.Navigator>
   );
 };

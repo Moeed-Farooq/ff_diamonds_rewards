@@ -93,6 +93,12 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           />
 
           <PolicySectionBlock
+            title={en.privacyPolicy.deletionTitle}
+            description={en.privacyPolicy.deletionDescription}
+            styles={styles}
+          />
+
+          <PolicySectionBlock
             title={en.privacyPolicy.contactTitle}
             description={en.privacyPolicy.contactDescription}
             styles={styles}

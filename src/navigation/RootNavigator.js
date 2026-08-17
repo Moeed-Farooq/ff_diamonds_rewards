@@ -1,12 +1,47 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomNavigator from './BottomNavigator';
 import * as ui from '../screens';
-import { COLORS } from '../enums/StyleGuide';
 import { SCREEN, TAB } from '../enums';
 import { palette } from '../constants/theme';
+import { useUserProfile } from '../hooks';
+
+const withRegisteredAccount = Component => {
+  const GuardedScreen = props => {
+    const navigation = useNavigation();
+    const { isGuest, loading } = useUserProfile();
+
+    useEffect(() => {
+      if (loading || !isGuest) {
+        return;
+      }
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: SCREEN.WELCOME_SCREEN }],
+      });
+    }, [isGuest, loading, navigation]);
+
+    if (isGuest) {
+      return null;
+    }
+
+    return <Component {...props} />;
+  };
+
+  return GuardedScreen;
+};
+
+const DailyLoginScreen = withRegisteredAccount(ui.DailyLoginScreen);
+const ScratchWinScreen = withRegisteredAccount(ui.ScratchWinScreen);
+const SpinWinScreen = withRegisteredAccount(ui.SpinWinScreen);
+const WatchEarnScreen = withRegisteredAccount(ui.WatchEarnScreen);
+const BlockPuzzleScreen = withRegisteredAccount(ui.BlockPuzzleScreen);
+const TransactionHistoryScreen = withRegisteredAccount(
+  ui.TransactionHistoryScreen,
+);
 
 const Stack = createNativeStackNavigator();
 
@@ -24,23 +59,23 @@ const RootNavigator = () => {
         <Stack.Screen name={TAB.BOTTOM} component={BottomNavigator} />
         <Stack.Screen
           name={SCREEN.DAILY_LOGIN_SCREEN}
-          component={ui.DailyLoginScreen}
+          component={DailyLoginScreen}
         />
         <Stack.Screen
           name={SCREEN.SCRATCH_WIN_SCREEN}
-          component={ui.ScratchWinScreen}
+          component={ScratchWinScreen}
         />
         <Stack.Screen
           name={SCREEN.SPIN_WIN_SCREEN}
-          component={ui.SpinWinScreen}
+          component={SpinWinScreen}
         />
         <Stack.Screen
           name={SCREEN.WATCH_EARN_SCREEN}
-          component={ui.WatchEarnScreen}
+          component={WatchEarnScreen}
         />
         <Stack.Screen
           name={SCREEN.TRANSACTION_HISTORY_SCREEN}
-          component={ui.TransactionHistoryScreen}
+          component={TransactionHistoryScreen}
         />
         <Stack.Screen
           name={SCREEN.PRIVACY_POLICY_SCREEN}
@@ -48,7 +83,7 @@ const RootNavigator = () => {
         />
         <Stack.Screen
           name={SCREEN.BLOCK_PUZZLE_SCREEN}
-          component={ui.BlockPuzzleScreen}
+          component={BlockPuzzleScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

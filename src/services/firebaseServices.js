@@ -2,7 +2,8 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { FIREBASE_COLLECTIONS } from '../enums';
 import { weeklyRewards, scratchRewards } from '../dummies';
-import { canSpinWheel, canPlayScratch } from '../helpers';
+import { canSpinWheel, canPlayScratch, isGuestProfile } from '../helpers';
+import { SESSION_MODE, setSessionMode, getSessionMode } from './sessionService';
 
 const usersCollection = firestore().collection(
   FIREBASE_COLLECTIONS.USERS_COLLECTION,
@@ -68,6 +69,7 @@ export const createUserProfile = async ({
   uid: uidParam,
   username,
   gameId,
+  isGuest = false,
 }) => {
   const uid = uidParam || getCurrentUser()?.uid;
   const normalizedGameId = (gameId || '').trim();
@@ -111,6 +113,7 @@ export const createUserProfile = async ({
       count: 0,
       lastOpenAt: null,
     },
+    isGuest: Boolean(isGuest),
     createdAt: serverTime,
     updatedAt: serverTime,
   };
@@ -149,7 +152,7 @@ export const updateUserProfile = async (uidParam, updates = {}) => {
 };
 
 const isValidProfile = (profile, uid) => {
-  if (!profile) {
+  if (!profile || profile.deleted) {
     return false;
   }
 
@@ -160,64 +163,299 @@ const isValidProfile = (profile, uid) => {
   );
 };
 
+const credentialsMatch = (profile, username, gameId) => {
+  if (!profile) {
+    return false;
+  }
+
+  return (
+    (profile.username || '').trim().toLowerCase() ===
+      (username || '').trim().toLowerCase() &&
+    (profile.gameId || '').trim() === (gameId || '').trim()
+  );
+};
+
+const deleteQueryBatch = async collectionRef => {
+  while (true) {
+    const snapshot = await collectionRef.limit(400).get();
+
+    if (snapshot.empty) {
+      return;
+    }
+
+    const batch = firestore().batch();
+    snapshot.docs.forEach(documentSnapshot => {
+      batch.delete(documentSnapshot.ref);
+    });
+    await batch.commit();
+  }
+};
+
+const findProfileByCredentials = async (username, gameId) => {
+  const normalizedUsername = (username || '').trim();
+  const normalizedGameId = (gameId || '').trim();
+
+  if (!normalizedUsername || !normalizedGameId) {
+    return null;
+  }
+
+  try {
+    const snapshot = await usersCollection
+      .where('gameId', '==', normalizedGameId)
+      .limit(10)
+      .get();
+
+    const match = snapshot.docs
+      .map(documentSnapshot => ({
+        id: documentSnapshot.id,
+        ...documentSnapshot.data(),
+      }))
+      .find(
+        profile =>
+          !profile?.deleted &&
+          !isGuestProfile(profile) &&
+          (profile.username || '').trim().toLowerCase() ===
+            normalizedUsername.toLowerCase(),
+      );
+
+    return match || null;
+  } catch (error) {
+    console.log('Profile lookup failed:', error?.message || error);
+    return null;
+  }
+};
+
+const copyCollectionDocs = async (sourceCollection, targetCollection) => {
+  const snapshot = await sourceCollection.get();
+
+  if (snapshot.empty) {
+    return;
+  }
+
+  let batch = firestore().batch();
+  let operationCount = 0;
+
+  for (const documentSnapshot of snapshot.docs) {
+    batch.set(targetCollection.doc(documentSnapshot.id), documentSnapshot.data());
+    operationCount += 1;
+
+    if (operationCount >= 400) {
+      await batch.commit();
+      batch = firestore().batch();
+      operationCount = 0;
+    }
+  }
+
+  if (operationCount > 0) {
+    await batch.commit();
+  }
+};
+
+const migrateProfileToUid = async (sourceProfile, targetUid) => {
+  const sourceUid = sourceProfile.uid || sourceProfile.id;
+
+  if (!sourceUid || sourceUid === targetUid) {
+    return getUserProfile(targetUid);
+  }
+
+  const sourceRef = usersCollection.doc(sourceUid);
+  const targetRef = usersCollection.doc(targetUid);
+  const sourceData = { ...sourceProfile };
+  delete sourceData.id;
+
+  await targetRef.set({
+    ...sourceData,
+    uid: targetUid,
+    isGuest: false,
+    updatedAt: firestore.FieldValue.serverTimestamp(),
+  });
+
+  try {
+    await copyCollectionDocs(
+      sourceRef.collection('transactions'),
+      targetRef.collection('transactions'),
+    );
+  } catch (error) {
+    console.log('Transaction migrate failed:', error?.message || error);
+  }
+
+  try {
+    await deleteQueryBatch(sourceRef.collection('transactions'));
+    await sourceRef.delete();
+  } catch (error) {
+    console.log('Old profile cleanup failed:', error?.message || error);
+  }
+
+  return getUserProfile(targetUid);
+};
+
+const applyMissingProfileFields = async (uid, existingProfile) => {
+  const existingIsGuest = isGuestProfile(existingProfile);
+  const updates = {};
+
+  if (existingProfile.isGuest === undefined) {
+    updates.isGuest = existingIsGuest;
+  }
+
+  if (existingProfile.coins === undefined) {
+    updates.coins = 0;
+  }
+
+  if (existingProfile.totalEarned === undefined) {
+    updates.totalEarned = 0;
+  }
+
+  if (!existingProfile.dailyLogin) {
+    updates.dailyLogin = {
+      currentDay: 0,
+      lastClaimAt: null,
+    };
+  }
+  if (!existingProfile.scratchWin) {
+    updates.scratchWin = {
+      claimedCards: [],
+      lastCompletedAt: null,
+      extraScratches: 0,
+    };
+  } else if (existingProfile.scratchWin.extraScratches === undefined) {
+    updates.scratchWin = {
+      ...existingProfile.scratchWin,
+      extraScratches: 0,
+    };
+  }
+  if (!existingProfile.spinWheel) {
+    updates.spinWheel = {
+      spinsUsed: 0,
+      lastResetAt: null,
+      extraSpins: 0,
+    };
+  } else if (existingProfile.spinWheel.extraSpins === undefined) {
+    updates.spinWheel = {
+      ...existingProfile.spinWheel,
+      extraSpins: 0,
+    };
+  }
+  if (!existingProfile.dailyStreak) {
+    updates.dailyStreak = {
+      count: 0,
+      lastOpenAt: null,
+    };
+  }
+  if (existingProfile.transactions === undefined) {
+    updates.transactions = 0;
+  }
+
+  if (Object.keys(updates).length) {
+    await updateUserProfile(uid, updates);
+  }
+};
+
 export const ensureUserProfile = async profilePayload => {
   const user = await anonymousLogin();
   const existingProfile = await getUserProfile(user.uid);
+  const isGuestLogin = Boolean(profilePayload?.isGuest);
+
+  if (isGuestLogin) {
+    await setSessionMode(SESSION_MODE.GUEST);
+
+    if (isValidProfile(existingProfile, user.uid)) {
+      return {
+        user,
+        profile: existingProfile,
+        isNewProfile: false,
+      };
+    }
+
+    await createUserProfile({
+      uid: user.uid,
+      username: profilePayload.username,
+      gameId: profilePayload.gameId,
+      isGuest: true,
+    });
+
+    const guestProfile = await getUserProfile(user.uid);
+
+    return {
+      user,
+      profile: guestProfile,
+      isNewProfile: true,
+    };
+  }
+
+  if (
+    profilePayload &&
+    isNonEmptyString(profilePayload.username) &&
+    isNonEmptyString(profilePayload.gameId)
+  ) {
+    const username = profilePayload.username.trim();
+    const gameId = profilePayload.gameId.trim();
+
+    if (
+      isValidProfile(existingProfile, user.uid) &&
+      credentialsMatch(existingProfile, username, gameId)
+    ) {
+      await applyMissingProfileFields(user.uid, existingProfile);
+      await setSessionMode(SESSION_MODE.ACTIVE);
+
+      return {
+        user,
+        profile: existingProfile,
+        isNewProfile: false,
+      };
+    }
+
+    const matchedProfile = await findProfileByCredentials(username, gameId);
+
+    if (matchedProfile) {
+      const restoredProfile =
+        (matchedProfile.uid || matchedProfile.id) === user.uid
+          ? existingProfile
+          : await migrateProfileToUid(matchedProfile, user.uid);
+
+      await setSessionMode(SESSION_MODE.ACTIVE);
+
+      return {
+        user,
+        profile: restoredProfile,
+        isNewProfile: false,
+      };
+    }
+
+    if (isValidProfile(existingProfile, user.uid) && isGuestProfile(existingProfile)) {
+      await updateUserProfile(user.uid, {
+        username,
+        gameId,
+        isGuest: false,
+      });
+      await setSessionMode(SESSION_MODE.ACTIVE);
+
+      return {
+        user,
+        profile: await getUserProfile(user.uid),
+        isNewProfile: false,
+      };
+    }
+
+    await createUserProfile({
+      uid: user.uid,
+      username,
+      gameId,
+      isGuest: false,
+    });
+    await setSessionMode(SESSION_MODE.ACTIVE);
+
+    const nextProfile = await getUserProfile(user.uid);
+
+    return {
+      user,
+      profile: nextProfile,
+      isNewProfile: true,
+    };
+  }
 
   if (isValidProfile(existingProfile, user.uid)) {
-    const updates = {};
+    await applyMissingProfileFields(user.uid, existingProfile);
 
-    if (existingProfile.coins === undefined) {
-      updates.coins = 0;
-    }
-
-    if (existingProfile.totalEarned === undefined) {
-      updates.totalEarned = 0;
-    }
-
-    if (!existingProfile.dailyLogin) {
-      updates.dailyLogin = {
-        currentDay: 0,
-        lastClaimAt: null,
-      };
-    }
-    if (!existingProfile.scratchWin) {
-      updates.scratchWin = {
-        claimedCards: [],
-        lastCompletedAt: null,
-        extraScratches: 0,
-      };
-    } else if (existingProfile.scratchWin.extraScratches === undefined) {
-      updates.scratchWin = {
-        ...existingProfile.scratchWin,
-        extraScratches: 0,
-      };
-    }
-    if (!existingProfile.spinWheel) {
-      updates.spinWheel = {
-        spinsUsed: 0,
-        lastResetAt: null,
-        extraSpins: 0,
-      };
-    } else if (existingProfile.spinWheel.extraSpins === undefined) {
-      updates.spinWheel = {
-        ...existingProfile.spinWheel,
-        extraSpins: 0,
-      };
-    }
-    if (!existingProfile.dailyStreak) {
-      updates.dailyStreak = {
-        count: 0,
-        lastOpenAt: null,
-      };
-    }
-    if (existingProfile.transactions === undefined) {
-      updates.transactions = 0;
-    }
-
-    if (Object.keys(updates).length) {
-      await updateUserProfile(user.uid, updates);
-    }
     return {
       user,
       profile: existingProfile,
@@ -225,26 +463,10 @@ export const ensureUserProfile = async profilePayload => {
     };
   }
 
-  if (!profilePayload) {
-    return {
-      user,
-      profile: null,
-      isNewProfile: false,
-    };
-  }
-
-  await createUserProfile({
-    uid: user.uid,
-    username: profilePayload.username,
-    gameId: profilePayload.gameId,
-  });
-
-  const nextProfile = await getUserProfile(user.uid);
-
   return {
     user,
-    profile: nextProfile,
-    isNewProfile: true,
+    profile: null,
+    isNewProfile: false,
   };
 };
 
@@ -278,8 +500,15 @@ export const hasCompletedOnboarding = async () => {
   console.log(profile.dailyStreak);
   await updateDailyStreak();
 
+  const hasFullAccount =
+    isValidProfile(profile, user.uid) && !isGuestProfile(profile);
+  const sessionMode = await getSessionMode();
+  const isCompleted =
+    hasFullAccount &&
+    (sessionMode === SESSION_MODE.ACTIVE || sessionMode === null);
+
   return {
-    isCompleted: isValidProfile(profile, user.uid),
+    isCompleted,
     dailyStreak: profile?.dailyStreak ?? {
       count: 0,
       lastOpenAt: null,
@@ -290,9 +519,135 @@ export const hasCompletedOnboarding = async () => {
 };
 
 export const logoutUser = async () => {
-  if (getCurrentUser()) {
-    await auth().signOut();
+  await setSessionMode(SESSION_MODE.LOGGED_OUT);
+};
+
+export const deleteUserAccount = async () => {
+  const user = getCurrentUser();
+
+  if (!user) {
+    throw new Error('No authenticated user.');
   }
+
+  const uid = user.uid;
+  const userRef = usersCollection.doc(uid);
+  const transactionsRef = userRef.collection('transactions');
+
+  await deleteQueryBatch(transactionsRef);
+
+  // Wipe progress first so the same username/gameId cannot restore old records.
+  await userRef.set({
+    uid,
+    username: '',
+    gameId: '',
+    coins: 0,
+    totalEarned: 0,
+    transactions: 0,
+    dailyLogin: {
+      currentDay: 0,
+      lastClaimAt: null,
+    },
+    scratchWin: {
+      claimedCards: [],
+      lastCompletedAt: null,
+      extraScratches: 0,
+    },
+    spinWheel: {
+      spinsUsed: 0,
+      lastResetAt: null,
+      extraSpins: 0,
+    },
+    dailyStreak: {
+      count: 0,
+      lastOpenAt: null,
+    },
+    isGuest: false,
+    deleted: true,
+    deletedAt: firestore.FieldValue.serverTimestamp(),
+    updatedAt: firestore.FieldValue.serverTimestamp(),
+  });
+
+  try {
+    await userRef.delete();
+  } catch (error) {
+    console.log('Profile delete failed:', error?.message || error);
+  }
+
+  await setSessionMode(SESSION_MODE.LOGGED_OUT);
+
+  try {
+    await user.delete();
+  } catch (error) {
+    await auth().signOut();
+    throw error;
+  }
+};
+
+export const redeemVirtualReward = async ({
+  packageId,
+  title,
+  coinCost,
+} = {}) => {
+  const uid = getCurrentUser()?.uid;
+
+  if (!uid) {
+    throw new Error('User not found.');
+  }
+
+  const cost = Math.floor(Number(coinCost));
+
+  if (!Number.isFinite(cost) || cost <= 0) {
+    throw new Error('Invalid reward cost.');
+  }
+
+  const userRef = usersCollection.doc(uid);
+  const transactionRef = userRef.collection('transactions').doc();
+  let balanceAfterTransaction = 0;
+
+  await firestore().runTransaction(async transaction => {
+    const snapshot = await transaction.get(userRef);
+
+    if (!snapshot.exists) {
+      throw new Error('Profile not found.');
+    }
+
+    const profile = snapshot.data() || {};
+    const currentCoins = Number(profile.coins) || 0;
+
+    if (currentCoins < cost) {
+      throw new Error('Not enough coins.');
+    }
+
+    const nextBalance = currentCoins - cost;
+    const nextTransactionCount = (profile.transactions || 0) + 1;
+    balanceAfterTransaction = nextBalance;
+
+    transaction.set(
+      userRef,
+      {
+        coins: nextBalance,
+        transactions: nextTransactionCount,
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    transaction.set(transactionRef, {
+      type: 'redeem',
+      title: sanitizeText(title, 'Virtual reward'),
+      coins: -cost,
+      screen: 'WithdrawalScreen',
+      game: 'Rewards',
+      rewardSource: sanitizeText(packageId, sanitizeText(title, 'redeem')),
+      balanceAfterTransaction: nextBalance,
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    });
+  });
+
+  return {
+    coinsSpent: cost,
+    balanceAfterTransaction,
+  };
 };
 
 const normalizeCoins = coins => {
