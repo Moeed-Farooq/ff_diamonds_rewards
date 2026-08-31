@@ -9,6 +9,7 @@ export const SCREEN = {
   SCRATCH_WIN_SCREEN: 'ScratchWinScreen',
   SPIN_WIN_SCREEN: 'SpinWinScreen',
   WATCH_EARN_SCREEN: 'WatchEarnScreen',
+  PERKOX_REWARD_SCREEN: 'PerkoxRewardScreen',
   WELCOME_SCREEN: 'WelcomeScreen',
   BLOCK_PUZZLE_SCREEN: 'BlockPuzzleScreen',
 };

@@ -1446,6 +1446,8 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
+  - PerkoxReactNativeSdk (2.0.11):
+    - React-Core
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -4677,6 +4679,7 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - "PerkoxReactNativeSdk (from `../node_modules/@perkoxofficial/react-native-sdk`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
@@ -4821,6 +4824,8 @@ EXTERNAL SOURCES:
     :tag: hermes-v0.14.1
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  PerkoxReactNativeSdk:
+    :path: "../node_modules/@perkoxofficial/react-native-sdk"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTDeprecation:
@@ -5033,6 +5038,7 @@ SPEC CHECKSUMS:
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: 7696ee54db539844f215c7e1f37372ae3138f37d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  PerkoxReactNativeSdk: 90fd7c0477933562f3b440e0bbe42c9ffe36d374
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: 9da1d0cf93db23ca8b41e8efe9ae558fd9c0077f
   RCTRequired: 92a63c7041031a131fa5206eb082d53f95729b79

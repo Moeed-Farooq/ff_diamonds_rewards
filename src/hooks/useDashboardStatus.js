@@ -75,6 +75,7 @@ export const useDashboardStatus = () => {
     spin: formatRemainingStatus(MAX_SPINS),
     watch: en.rewardData.statusAvailable,
     blockPuzzle: en.rewardData.statusAvailable,
+    perkox: en.rewardData.statusAvailable,
   });
 
   useEffect(() => {
@@ -87,6 +88,7 @@ export const useDashboardStatus = () => {
         spin: getSpinStatus(user.spinWheel),
         watch: en.rewardData.statusAvailable,
         blockPuzzle: en.rewardData.statusAvailable,
+        perkox: en.rewardData.statusAvailable,
       });
     });
 

@@ -38,6 +38,7 @@ const DailyLoginScreen = withRegisteredAccount(ui.DailyLoginScreen);
 const ScratchWinScreen = withRegisteredAccount(ui.ScratchWinScreen);
 const SpinWinScreen = withRegisteredAccount(ui.SpinWinScreen);
 const WatchEarnScreen = withRegisteredAccount(ui.WatchEarnScreen);
+const PerkoxRewardScreen = withRegisteredAccount(ui.PerkoxRewardScreen);
 const BlockPuzzleScreen = withRegisteredAccount(ui.BlockPuzzleScreen);
 const TransactionHistoryScreen = withRegisteredAccount(
   ui.TransactionHistoryScreen,
@@ -72,6 +73,10 @@ const RootNavigator = () => {
         <Stack.Screen
           name={SCREEN.WATCH_EARN_SCREEN}
           component={WatchEarnScreen}
+        />
+        <Stack.Screen
+          name={SCREEN.PERKOX_REWARD_SCREEN}
+          component={PerkoxRewardScreen}
         />
         <Stack.Screen
           name={SCREEN.TRANSACTION_HISTORY_SCREEN}

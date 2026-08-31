@@ -10,6 +10,7 @@ import TransactionHistoryScreen from './transactionHistoryScreen';
 import PrivacyPolicyScreen from './privacyPolicyScreen';
 import WelcomeScreen from './welcomeScreen';
 import BlockPuzzleScreen from './blockPuzzleScreen';
+import PerkoxRewardScreen from './perkoxRewardScreen';
 
 export {
   HomeScreen,
@@ -23,5 +24,6 @@ export {
   TransactionHistoryScreen,
   PrivacyPolicyScreen,
   WelcomeScreen,
-  BlockPuzzleScreen
+  BlockPuzzleScreen,
+  PerkoxRewardScreen,
 };

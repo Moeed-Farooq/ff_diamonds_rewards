@@ -51,6 +51,14 @@ export const dashboardCards = [
     route: SCREEN.DAILY_LOGIN_SCREEN,
   },
   {
+    id: 'perkox',
+    title: en.rewardData.dashboardPerkoxTitle,
+    subtitle: en.rewardData.dashboardPerkoxSubtitle,
+    icon: SVG.play,
+    colors: gradients.dashboardPerkox,
+    route: SCREEN.PERKOX_REWARD_SCREEN,
+  },
+  {
     id: 'scratch',
     title: en.rewardData.dashboardScratchTitle,
     subtitle: en.rewardData.dashboardScratchSubtitle,

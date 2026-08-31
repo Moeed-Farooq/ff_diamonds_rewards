@@ -23,6 +23,12 @@ apply plugin: "com.facebook.react.rootproject"
 
 // Configure Kotlin compiler to skip metadata version checks and suppress initialization errors
 allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://www.jitpack.io' }
+    }
+
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
         kotlinOptions {
             freeCompilerArgs += [

@@ -93,6 +93,22 @@
     "rewardPendingMessage": "Ad reward was earned but coins could not be saved. Check your connection and try again.",
     "earnedCoinsMessage": "You earned {{reward}} coins from this reward ad."
   },
+  "perkox": {
+    "screenTitle": "Perkox Offerwall Rewards",
+    "screenSubtitle": "Earn coins by completing offers",
+    "heroTitle": "Complete offers. Earn points.",
+    "heroMessage": "Open the Perkox offerwall, finish available tasks, and rewards are added to your app balance automatically.",
+    "button": "Open Perkox Offerwall",
+    "buttonLoading": "Opening...",
+    "buttonPreparing": "Preparing…",
+    "openFailedTitle": "Error",
+    "openFailedMessage": "Failed to launch Perkox Offerwall.",
+    "initFailed": "Unable to initialize Perkox SDK.",
+    "rewardTitle": "Reward Earned",
+    "rewardMessage": "{{reward}} points were added to your balance.",
+    "rewardButton": "Awesome",
+    "pointsLabel": "App total points"
+  },
   "welcome": {
     "title": "Welcome 👋",
     "subtitle": "Complete your profile to continue.",
@@ -207,6 +223,8 @@
   "rewardData": {
     "dashboardDailyTitle": "Daily Login\nBonus",
     "dashboardDailySubtitle": "Claim your daily\nreward",
+    "dashboardPerkoxTitle": "Offerwall\nRewards",
+    "dashboardPerkoxSubtitle": "Complete offers to\nearn diamonds",
     "dashboardScratchTitle": "Scratch &\nWin",
     "dashboardScratchSubtitle": "Scratch cards for\ndiamonds",
     "dashboardSpinTitle": "Spin &\nWin",

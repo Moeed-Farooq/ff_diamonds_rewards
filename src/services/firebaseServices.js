@@ -94,6 +94,7 @@ export const createUserProfile = async ({
     gameId: normalizedGameId,
     coins: 0,
     totalEarned: 0,
+    perkoxPoints: 0,
     transactions: 0,
     dailyLogin: {
       currentDay: 0,
@@ -303,6 +304,10 @@ const applyMissingProfileFields = async (uid, existingProfile) => {
 
   if (existingProfile.totalEarned === undefined) {
     updates.totalEarned = 0;
+  }
+
+  if (existingProfile.perkoxPoints === undefined) {
+    updates.perkoxPoints = 0;
   }
 
   if (!existingProfile.dailyLogin) {
@@ -542,6 +547,7 @@ export const deleteUserAccount = async () => {
     gameId: '',
     coins: 0,
     totalEarned: 0,
+    perkoxPoints: 0,
     transactions: 0,
     dailyLogin: {
       currentDay: 0,
@@ -681,6 +687,7 @@ export const awardCoinsWithTransaction = async ({
   screen,
   game,
   rewardSource,
+  transactionId,
 } = {}) => {
   const uid = uidParam || getCurrentUser()?.uid;
 
@@ -690,7 +697,10 @@ export const awardCoinsWithTransaction = async ({
 
   const coinsToAdd = normalizeCoins(coins);
   const userRef = usersCollection.doc(uid);
-  const transactionRef = userRef.collection('transactions').doc();
+  const resolvedTransactionId = sanitizeText(transactionId)?.replace(/\//g, '_');
+  const transactionRef = resolvedTransactionId
+    ? userRef.collection('transactions').doc(resolvedTransactionId)
+    : userRef.collection('transactions').doc();
   let balanceAfterTransaction = 0;
 
   await firestore().runTransaction(async transaction => {
@@ -700,32 +710,47 @@ export const awardCoinsWithTransaction = async ({
       throw new Error('Profile not found.');
     }
 
+    if (resolvedTransactionId) {
+      const existingTx = await transaction.get(transactionRef);
+
+      if (existingTx.exists) {
+        const profile = snapshot.data() || {};
+        balanceAfterTransaction = profile.coins || 0;
+        return;
+      }
+    }
+
     const profile = snapshot.data() || {};
+    const transactionType = normalizeTransactionType(type);
     const nextBalance = (profile.coins || 0) + coinsToAdd;
     const nextTotalEarned = (profile.totalEarned || 0) + coinsToAdd;
     const nextTransactionCount = (profile.transactions || 0) + 1;
+    const nextPerkoxPoints =
+      transactionType === 'offerwall'
+        ? (profile.perkoxPoints || 0) + coinsToAdd
+        : profile.perkoxPoints;
 
     balanceAfterTransaction = nextBalance;
 
-    transaction.set(
-      userRef,
-      {
-        ...profileUpdates,
-        coins: nextBalance,
-        totalEarned: nextTotalEarned,
-        transactions: nextTransactionCount,
-        updatedAt: firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+    const userUpdates = {
+      ...profileUpdates,
+      coins: nextBalance,
+      totalEarned: nextTotalEarned,
+      transactions: nextTransactionCount,
+      updatedAt: firestore.FieldValue.serverTimestamp(),
+    };
 
-    const transactionType = normalizeTransactionType(type);
+    if (transactionType === 'offerwall') {
+      userUpdates.perkoxPoints = nextPerkoxPoints;
+    }
+    transaction.set(userRef, userUpdates, { merge: true });
+
     const resolvedTitle =
       sanitizeText(title) ||
       sanitizeText(rewardSource) ||
       `${transactionType.replace(/_/g, ' ')} reward`;
 
-    transaction.set(transactionRef, {
+    const transactionPayload = {
       type: transactionType,
       title: resolvedTitle,
       coins: coinsToAdd,
@@ -734,7 +759,17 @@ export const awardCoinsWithTransaction = async ({
       rewardSource: sanitizeText(rewardSource, resolvedTitle),
       balanceAfterTransaction: nextBalance,
       createdAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+
+    if (resolvedTransactionId) {
+      transactionPayload.txid = resolvedTransactionId;
+    }
+
+    if (transactionType === 'offerwall') {
+      transactionPayload.perkoxPoints = coinsToAdd;
+    }
+
+    transaction.set(transactionRef, transactionPayload);
   });
 
   return {
@@ -1164,6 +1199,7 @@ export const addCoins = async (coins, transactionMeta = {}) => {
     screen: transactionMeta.screen,
     game: transactionMeta.game,
     rewardSource: transactionMeta.rewardSource,
+    transactionId: transactionMeta.transactionId,
   });
 };
 
@@ -1197,6 +1233,7 @@ const normalizeTransaction = (id, data = {}) => {
     type: normalizeTransactionType(data.type),
     title: sanitizeText(data.title, sanitizeText(data.rewardSource, 'Reward')),
     coins: toNumber(data.coins),
+    perkoxPoints: toNumber(data.perkoxPoints || data.coins),
     createdAt,
     screen: sanitizeText(data.screen, ''),
     game: sanitizeText(data.game, ''),

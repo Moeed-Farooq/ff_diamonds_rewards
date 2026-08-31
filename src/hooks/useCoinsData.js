@@ -6,6 +6,7 @@ const useCoinsData = () => {
   return {
     coins: profile?.coins ?? 0,
     totalEarned: profile?.totalEarned ?? 0,
+    perkoxPoints: profile?.perkoxPoints ?? 0,
 
     dailyLogin: profile?.dailyLogin ?? {
       currentDay: 0,

@@ -18,6 +18,7 @@ const BANNER_AREA_HEIGHT = hp(8);
 
 const CARD_ICONS = {
   daily: 'calendar-month',
+  perkox: 'gift-outline',
   scratch: 'ticket-percent-outline',
   spin: 'poker-chip',
   watch: 'play-circle-outline',

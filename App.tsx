@@ -9,6 +9,8 @@ import {
   rewardedService,
   showAppOpenIfAvailable,
 } from './src/services/ads';
+import { getCurrentUser } from './src/services';
+import { initPerkoxSdk } from './src/services/perkox/perkoxSdk';
 
 
 const App = () => {
@@ -24,6 +26,21 @@ const App = () => {
 
     bootAds().catch(error => {
       console.log('Ads bootstrap failed:', error?.message || error);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!getCurrentUser()?.uid) {
+      return;
+    }
+
+    initPerkoxSdk().catch(perkoxError => {
+      if (__DEV__) {
+        console.warn(
+          'Perkox SDK initialization failed:',
+          perkoxError instanceof Error ? perkoxError.message : perkoxError,
+        );
+      }
     });
   }, []);
 

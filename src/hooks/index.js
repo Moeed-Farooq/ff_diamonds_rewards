@@ -7,6 +7,7 @@ import useDashboardStatus from './useDashboardStatus';
 import useInterstitialAd from './useInterstitialAd';
 import useRewardedAd from './useRewardedAd';
 import useTransactionHistory from './useTransactionHistory';
+import usePerkox from './usePerkox';
 
 export {
   useUserSession,
@@ -17,4 +18,5 @@ export {
   useInterstitialAd,
   useRewardedAd,
   useTransactionHistory,
+  usePerkox,
 };
